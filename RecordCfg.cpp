@@ -15,7 +15,11 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CRecordCfg dialog
 
-
+/* Constructor -- initialises both CDropFilesEdit controls with the " | "
+ * multi-file separator so that files dragged onto them are joined by the
+ * same delimiter that CDV::BuildRecording() expects when splitting the
+ * combined pipeline string.
+ */
 CRecordCfg::CRecordCfg()
 	: CPropertyPage(CRecordCfg::IDD), m_aviPrefixCtl(" | "), m_aviSuffixCtl(" | ")
 {
@@ -50,13 +54,19 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CRecordCfg message handlers
 
-
-void CRecordCfg::OnPrefixSel() 
+/* OnPrefixSel -- open a multi-file browse dialog for the prefix AVI list.
+ * Delegates to SelectFile(TRUE, ...) which joins multiple selections with
+ * " | " and updates the IDC_AVI_PREFIX edit control directly.
+ */
+void CRecordCfg::OnPrefixSel()
 {
 	SelectFile(TRUE, GetDlgItem(IDC_AVI_PREFIX));
 }
 
-void CRecordCfg::OnSuffixSel() 
+/* OnSuffixSel -- open a multi-file browse dialog for the suffix AVI list.
+ * Same behaviour as OnPrefixSel but targets the IDC_AVI_SUFFIX edit control.
+ */
+void CRecordCfg::OnSuffixSel()
 {
 	SelectFile(TRUE, GetDlgItem(IDC_AVI_SUFFIX));
 }

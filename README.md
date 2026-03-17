@@ -26,6 +26,11 @@ Download the [latest release](https://github.com/hfiggs/WinDV/releases/latest/do
 ## Usage
 Visit the [windv.mourek.cz](http://windv.mourek.cz/) for an interactive guide.
 
+## Documentation
+
+- [Project Overview](project-overview.md) — comprehensive technical overview (architecture, build instructions, CLI, configuration)
+- [docs/](docs/README.md) — in-depth developer documentation (DirectShow pipeline, threading, DV format, UI layout, building)
+
 ## Contributing
 I am still trying to figure out the best way to set up a development environment. I currently have hacked together a *working* environment in Windows 10, but it is less than ideal. More details on this soon.
 

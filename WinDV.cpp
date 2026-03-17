@@ -1,5 +1,9 @@
 // WinDV.cpp : Defines the class behaviors for the application.
 //
+// Entry point and global helpers for the WinDV DV capture/record application.
+// The application is dialog-based: there is no document/view architecture.
+// CDVToolsDlg (DVToolsDlg.cpp) is the sole main window.
+//
 
 #include "stdafx.h"
 #include "WinDV.h"
@@ -42,6 +46,23 @@ CWinDVApp theApp;
 /////////////////////////////////////////////////////////////////////////////
 // CWinDVApp initialization
 
+/* InitInstance -- application entry point called by MFC after WinMain().
+ *
+ * Performs one-time setup before the main dialog is created:
+ *   1. Enables ActiveX control hosting in child windows (AfxEnableControlContainer).
+ *   2. Raises the process priority to HIGH_PRIORITY_CLASS.  DV capture is
+ *      time-critical: missing the 200 Hz frame delivery deadline causes dropped
+ *      frames that cannot be recovered.
+ *   3. Enables 3D-look controls appropriate for the shared/static MFC build.
+ *   4. Initialises COM with COINIT_MULTITHREADED.  DirectShow filter graphs
+ *      and device enumeration require COM; multi-threaded mode is necessary
+ *      because capture worker threads call COM interfaces directly.
+ *   5. Sets "Petr Mourek" as the registry key root so that all subsequent
+ *      GetProfileXxx/WriteProfileXxx calls store settings under
+ *      HKCU\Software\Petr Mourek\WinDV.
+ *   6. Creates and runs CDVToolsDlg modally.  Returns FALSE in all cases so
+ *      that MFC exits rather than entering the message pump.
+ */
 BOOL CWinDVApp::InitInstance()
 {
 	AfxEnableControlContainer();
@@ -85,6 +106,18 @@ BOOL CWinDVApp::InitInstance()
 
 /////////////////////////////////////////////////////////////////////////////
 
+/* SelectFile -- display a common file dialog and populate a control with the result.
+ *
+ * open   TRUE  => "Open" dialog with OFN_ALLOWMULTISELECT.  Multiple selected
+ *                 paths are concatenated with " | " as separator, matching the
+ *                 pipe-delimited format that CDropFilesEdit and the CDV pipeline
+ *                 expect for multi-file record sources.
+ *        FALSE => "Save" dialog (single file); the path is set verbatim.
+ * ctrl   Target CWnd (typically a CDropFilesEdit) whose text is updated on OK.
+ *
+ * The function uses a 16 KB path buffer to support long multi-file selections.
+ * If the user cancels the dialog the control text is left unchanged.
+ */
 void SelectFile(BOOL open, CWnd *ctrl)
 {
 	CFileDialog dlg(open, NULL, NULL, (open ? OFN_ALLOWMULTISELECT | OFN_HIDEREADONLY : 0),
@@ -97,6 +130,7 @@ void SelectFile(BOOL open, CWnd *ctrl)
 	if (dlg.DoModal() == IDOK) {
 		CString txt;
 		if (open) {
+			// Iterate through all selected filenames and join them with " | ".
 			POSITION p = dlg.GetStartPosition();
 			while (p) {
 				txt += dlg.GetNextPathName(p);
