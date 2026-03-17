@@ -676,11 +676,11 @@ public:
 	/* TRUE = write Type-2 AVI (separate audio/video); FALSE = Type-1 (interleaved). */
 	bool m_type2AVI;
 	/* DV timestamp delta (seconds) that triggers a new split file; 0 = disabled. */
-	int m_discontinuityTreshold;
+	UINT m_discontinuityTreshold;
 	/* Frame count at which the current AVI file is closed and a new one started. */
-	int m_maxAVIFrames;
+	UINT m_maxAVIFrames;
 	/* Record/capture only every Nth frame (1 = all frames, 2 = half rate, etc.). */
-	int m_everyNth;
+	UINT m_everyNth;
 	/* TRUE = show preview during recording (consumes extra queue bandwidth). */
 	bool m_recordPreview;
 	/* TRUE = send transport-control commands to the DV device automatically. */
