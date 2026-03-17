@@ -242,8 +242,14 @@ static struct CtrlProperties {int id; int dx, dw, dy, dh; int tabMask;} ctrlProp
  */
 bool CaptureFilenameExtractBase(CString &file)
 {
-	int pos = file.Find(".");
-	if (pos>=0) file = file.Mid(0, pos);
+	/* Use ReverseFind to locate the last dot — avoids truncating
+	 * at dots in directory names (e.g. "C:\My.Docs\video.avi"). */
+	int pos = file.ReverseFind('.');
+	/* Only strip if the dot is in the filename part (after last separator). */
+	int sep = file.ReverseFind('\\');
+	int sep2 = file.ReverseFind('/');
+	if (sep2 > sep) sep = sep2;
+	if (pos > sep) file = file.Mid(0, pos);
 	return ! file.IsEmpty();
 }
 

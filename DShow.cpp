@@ -118,13 +118,48 @@ static void EnumVideoDevices(BOOL record, LPCSTR device, CArray<CString,CString 
 			hr = pBag->Read(L"FriendlyName", &varName, NULL);
 			CHECK_HR(hr);
 			pBag->Release();
-			CString tmp = varName.bstrVal;
-			list.Add(tmp);
-			/* If a specific device name was requested and not yet bound, bind it now. */
-			if (device && pfilter && tmp == device && !*pfilter) {
-				hr = pM->BindToObject(NULL, NULL, IID_IBaseFilter, (void **)pfilter);
-				CHECK_HR(hr);
+
+			/* Filter for DV devices only: bind the device and check whether
+			 * any output pin supports MEDIATYPE_Interleaved (the DV media type).
+			 * Non-DV devices (webcams, USB capture cards) are skipped. */
+			IBaseFilter *pTestFilter = NULL;
+			hr = pM->BindToObject(NULL, NULL, IID_IBaseFilter, (void **)&pTestFilter);
+			if (SUCCEEDED(hr) && pTestFilter) {
+				bool isDV = false;
+				IEnumPins *pPinEnum = NULL;
+				if (SUCCEEDED(pTestFilter->EnumPins(&pPinEnum))) {
+					IPin *pPin;
+					while (pPinEnum->Next(1, &pPin, NULL) == S_OK) {
+						IEnumMediaTypes *pMTEnum = NULL;
+						if (SUCCEEDED(pPin->EnumMediaTypes(&pMTEnum))) {
+							AM_MEDIA_TYPE *pMT;
+							while (pMTEnum->Next(1, &pMT, NULL) == S_OK) {
+								if (pMT->majortype == MEDIATYPE_Interleaved) {
+									isDV = true;
+								}
+								DeleteMediaType(pMT);
+								if (isDV) break;
+							}
+							pMTEnum->Release();
+						}
+						pPin->Release();
+						if (isDV) break;
+					}
+					pPinEnum->Release();
+				}
+
+				if (isDV) {
+					CString tmp = varName.bstrVal;
+					list.Add(tmp);
+					/* If a specific device name was requested and not yet bound, keep the filter. */
+					if (device && pfilter && tmp == device && !*pfilter) {
+						*pfilter = pTestFilter;
+						pTestFilter = NULL; /* prevent release below */
+					}
+				}
+				if (pTestFilter) pTestFilter->Release();
 			}
+
 			SysFreeString(varName.bstrVal);
 		}
 		pM->Release();
@@ -576,7 +611,11 @@ void COutputGraph::HandleFrame(REFERENCE_TIME duration, BYTE *data, int len)
 
 		BYTE *ptr;
 
-		pSample->GetPointer(&ptr);
+		hr = pSample->GetPointer(&ptr);
+		if (FAILED(hr) || !ptr) {
+			pSample->Release();
+			return;
+		}
 
 		CopyMemory(ptr, data, len);
 		pSample->SetActualDataLength(len);
@@ -1317,8 +1356,10 @@ CAVIWriter::CAVIWriter(LPCSTR filename, LPCSTR dtformat, int ndigits, time_t tim
 	IFileSinkFilter2 *pFile2;
 	hr = pFile->QueryInterface(IID_IFileSinkFilter2, (void**)&pFile2);
 	pFile->Release();
-	pFile2->SetMode(AM_FILE_OVERWRITE);
-	pFile2->Release();
+	if (SUCCEEDED(hr) && pFile2) {
+		pFile2->SetMode(AM_FILE_OVERWRITE);
+		pFile2->Release();
+	}
 	if (type2AVI) {
 		/* Type-2: insert DV Splitter to demux video and audio into separate AVI streams. */
 		IBaseFilter *pDVSplit;
@@ -1369,9 +1410,14 @@ CAVIWriter::~CAVIWriter()
 		m_ME->WaitForCompletion(5000, &evCode);
 	}
 	if (m_MC) m_MC->Stop();
-	/* Compute the final filename and atomically rename from temp. */
+	/* Compute the final filename and atomically rename from temp.
+	 * If MoveFile fails (permissions, disk full), the temp file is kept
+	 * so the captured data is not lost. */
 	CString tmp = GetCaptureFilename(m_filename, m_dtformat, m_ndigits, m_dvtime);
-	MoveFile(m_tmpfile, tmp);
+	if (!MoveFile(m_tmpfile, tmp)) {
+		TRACE("CAVIWriter: MoveFile(\"%s\", \"%s\") failed, error %d\n",
+			  (LPCSTR)m_tmpfile, (LPCSTR)tmp, GetLastError());
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1618,7 +1664,9 @@ void CDVQueue::Put(REFERENCE_TIME duration, BYTE *data, int len)
 		{
 			CAutoLock lock(&m_cs);
 			if (m_load < m_queueSize-1) {
-				/* Write the frame into the tail slot and advance the tail. */
+				/* Write the frame into the tail slot and advance the tail.
+			 * Clamp len to m_dataSize to prevent buffer overflow. */
+				if (len > m_dataSize) len = m_dataSize;
 				m_queue[m_tail]->duration = duration;
 				m_queue[m_tail]->len = len;
 				CopyMemory(m_queue[m_tail]->data, data, len);
