@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Requests Common Controls 6.0 to enable XP/Vista+ visual styles
+     (themed buttons, tabs, progress bars, etc.). Embedded as resource
+     type RT_MANIFEST (24) in WinDV.rc so the OS loads it at startup. -->
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
 <dependency>
     <dependentAssembly>
