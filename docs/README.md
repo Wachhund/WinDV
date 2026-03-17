@@ -18,6 +18,7 @@ configuration registry keys, see
 | [dv-format.md](dv-format.md) | DIF frame structure, SSYB subcode, pack 0x62/0x63, BCD decoding, Y2K pivot |
 | [ui-layout.md](ui-layout.md) | Dialog architecture, tab control, proportional resize system, status display |
 | [building.md](building.md) | Prerequisites, IDE and NMAKE build steps, SDK paths, linked libraries |
+| [usb-dv-capture.md](usb-dv-capture.md) | USB DV streaming compatibility, known working cameras, troubleshooting |
 
 ---
 
