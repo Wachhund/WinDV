@@ -2,6 +2,7 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/hfiggs/WinDV)
 ![GitHub](https://img.shields.io/github/license/hfiggs/WinDV)
 ![Website](https://img.shields.io/website?url=http%3A%2F%2Fwindv.mourek.cz%2F)
+![Platform](https://img.shields.io/badge/platform-Windows-blue)
 
 A small Windows utility for DV (FireWire digital video) input/output.
 
