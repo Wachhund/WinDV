@@ -82,15 +82,16 @@ menu setting is `VCR SETUP > AV-DV > OFF`.
 
 ### Sony (no USB DV streaming)
 
-Sony camcorders do **not** support DV streaming over USB.
-USB is limited to photo transfer and device control.
-Use FireWire (i.LINK) for DV tape capture.
+Most Sony camcorders do **not** support DV streaming over
+USB. However, a few models are known exceptions.
 
 | Model | USB DV | Notes |
 | --- | --- | --- |
-| DCR-PC1000 / DCR-PC1000E | No | i.LINK only for DV |
+| DCR-PC1000 / DCR-PC1000E | Yes | USB DV confirmed |
 
-This applies to all Sony DV/Digital8 camcorders.
+Most other Sony DV/Digital8 camcorders use USB only for
+photo transfer and device control. Use FireWire (i.LINK)
+for DV tape capture on those models.
 
 ## How to Check if Your Camera Supports USB DV
 
