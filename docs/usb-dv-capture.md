@@ -87,7 +87,7 @@ USB. However, a few models are known exceptions.
 
 | Model | USB DV | Notes |
 | --- | --- | --- |
-| DCR-PC1000 / DCR-PC1000E | Yes | USB DV confirmed |
+| DCR-PC1000 / DCR-PC1000E | Yes | Tested with WinDV 1.2.4 |
 
 Most other Sony camcorders support USB streaming but
 **not** raw DV quality — they deliver compressed video
