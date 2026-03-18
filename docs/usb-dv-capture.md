@@ -89,9 +89,13 @@ USB. However, a few models are known exceptions.
 | --- | --- | --- |
 | DCR-PC1000 / DCR-PC1000E | Yes | USB DV confirmed |
 
-Most other Sony DV/Digital8 camcorders use USB only for
-photo transfer and device control. Use FireWire (i.LINK)
-for DV tape capture on those models.
+Most other Sony camcorders support USB streaming but
+**not** raw DV quality — they deliver compressed video
+instead. Use FireWire (i.LINK) for DV tape capture on
+those models.
+
+If you have a Sony camcorder that works with WinDV over
+USB, please report it so this list can be updated.
 
 ## How to Check if Your Camera Supports USB DV
 
