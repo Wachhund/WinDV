@@ -425,7 +425,8 @@ CInputGraph::~CInputGraph()
 void CInputGraph::Run(CFrameHandler *handler)
 {
 	m_handler = handler;
-	m_MC->Run();
+	HRESULT hr = m_MC->Run();
+	CHECK_HR(hr, "Can't start input graph");
 }
 
 /* Stops the graph and clears the handler reference. */
@@ -448,7 +449,8 @@ void CInputGraph::GetMediaType(CMediaType *type)
 {
 	AM_MEDIA_TYPE mt;
 	/* Read the media type from the connected pin negotiation. */
-	m_inputFilter->m_input->ConnectionMediaType(&mt);
+	HRESULT hr = m_inputFilter->m_input->ConnectionMediaType(&mt);
+	CHECK_HR(hr, "Can't get input media type");
 	*type = mt;
 	DVINFO *dvinfo = (DVINFO *)mt.pbFormat;
 	FreeMediaType(mt);
@@ -628,7 +630,10 @@ void COutputGraph::HandleFrame(REFERENCE_TIME duration, BYTE *data, int len)
 		/* Mark every DV frame as a sync point (all DV frames are independently decodable). */
 		pSample->SetSyncPoint(true);
 
-		m_outputFilter->m_output->Deliver(pSample);
+		hr = m_outputFilter->m_output->Deliver(pSample);
+		if (FAILED(hr)) {
+			TRACE("COutputGraph::HandleFrame: Deliver failed, hr=0x%08x\n", hr);
+		}
 
 		pSample->Release();
 	}
@@ -852,12 +857,14 @@ CAVIReader::CAVIReader(LPCSTR filename)
 	/* Convert ANSI filename to Unicode for the DirectShow API. */
 	MultiByteToWideChar(CP_ACP, 0, filename, -1, wbuf, sizeof wbuf/ sizeof (WCHAR));
 	hr = m_FG->AddSourceFilter(wbuf, L"File source", &pFSRC);
+	CHECK_HR(hr, "Can't open AVI file");
 
 	/* Add the AVI Splitter filter to parse the container. */
 	IBaseFilter * pAVI;
 	hr = CoCreateInstance((REFCLSID)CLSID_AviSplitter,
 						  NULL, CLSCTX_INPROC, (REFIID)IID_IBaseFilter,
 						  (void **)&pAVI);
+	CHECK_HR(hr, "Can't create AVI Splitter");
 	hr = m_FG->AddFilter(pAVI, L"AVI Splitter");
 	CHECK_HR(hr);
 	/* Connect File Source -> AVI Splitter. */
@@ -873,6 +880,7 @@ CAVIReader::CAVIReader(LPCSTR filename)
 	  hr = CoCreateInstance((REFCLSID)CLSID_DVMux,
 						  NULL, CLSCTX_INPROC, (REFIID)IID_IBaseFilter,
 						  (void **)&pDVMux);
+	  CHECK_HR(hr, "Can't create DV Mux");
 	  hr = m_FG->AddFilter(pDVMux, L"DV muxer");
   	  CHECK_HR(hr);
 	  /* Route video and audio streams through DV Mux, then to CInputFilter. */
@@ -1455,13 +1463,17 @@ CMonitor::CMonitor(HWND hWnd, CMediaType *type)
 	CHECK_HR(hr);
 	/* Build the decode + render chain automatically from COutputFilter. */
 	hr = m_GB->RenderStream(NULL, NULL, (IBaseFilter*)m_outputFilter, NULL, NULL);
+	CHECK_HR(hr, "Can't build preview render chain");
 	/* Reduce decoder resolution to half-D1 for preview; saves CPU. */
 	SetDVDecoding(m_FG, 0);
 	/* Embed the video renderer window inside the CDV control. */
 	hr = m_VW->put_Owner((LONG)m_hWnd);
+	CHECK_HR(hr, "Can't set preview window owner");
 	hr = m_VW->put_WindowStyle(WS_CHILD);
+	CHECK_HR(hr, "Can't set preview window style");
 	Resize();
-	m_MC->Run();
+	hr = m_MC->Run();
+	CHECK_HR(hr, "Can't start preview graph");
 
 	/* Start the monitoring thread suspended so we can clear m_bAutoDelete first. */
 	m_thread = AfxBeginThread(::MonitoringThread,this,THREAD_PRIORITY_BELOW_NORMAL,0,CREATE_SUSPENDED);
@@ -1533,7 +1545,11 @@ void CMonitor::HandleFrame(REFERENCE_TIME duration, BYTE *data, int len)
 	if (data) {
 		if (m_sample) {
 			BYTE *ptr;
-			m_sample->GetPointer(&ptr);
+			HRESULT hr = m_sample->GetPointer(&ptr);
+			if (FAILED(hr) || !ptr) {
+				m_sample = NULL;
+				return;
+			}
 			CopyMemory(ptr, data, len);
 			m_sample->SetActualDataLength(len);
 			m_sample->SetSyncPoint(true);
