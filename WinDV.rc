@@ -118,8 +118,8 @@ CAPTION "About WinDV"
 FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDI_WINDV,IDC_STATIC,7,-4,20,20
-    LTEXT           "1.2.3",IDC_STATIC,30,8,21,8,SS_NOPREFIX
-    RTEXT           "� Petr Mourek 2002-2003",IDC_STATIC,48,8,86,8,
+    LTEXT           "1.2.4",IDC_STATIC,30,8,21,8,SS_NOPREFIX
+    RTEXT           "(c) Petr Mourek 2002-2003",IDC_STATIC,48,8,86,8,
                     SS_NOPREFIX
     LTEXT           "e-mail:",IDC_STATIC,7,21,19,8
     LTEXT           "petr@mourek.cz",IDC_EMAIL,28,21,53,8,SS_NOTIFY
@@ -289,8 +289,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,3,0
- PRODUCTVERSION 1,2,3,0
+ FILEVERSION 1,2,4,0
+ PRODUCTVERSION 1,2,4,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -308,14 +308,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Petr Mourek\0"
             VALUE "FileDescription", "WinDV - DV capturing and recording\0"
-            VALUE "FileVersion", "1, 2, 3, 0\0"
+            VALUE "FileVersion", "1, 2, 4, 0\0"
             VALUE "InternalName", "WinDV\0"
-            VALUE "LegalCopyright", "Copyright � Petr Mourek 2002-2003\0"
+            VALUE "LegalCopyright", "Copyright (c) Petr Mourek 2002-2003\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "WinDV.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "WinDV\0"
-            VALUE "ProductVersion", "1, 2, 3, 0\0"
+            VALUE "ProductVersion", "1, 2, 4, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -360,7 +360,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    AFX_IDS_APP_TITLE       "WinDV 1.2"
+    AFX_IDS_APP_TITLE       "WinDV 1.2.4"
 END
 
 #endif    // English (U.S.) resources
