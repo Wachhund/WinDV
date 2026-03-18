@@ -2,6 +2,47 @@
 
 All notable changes to WinDV are documented in this file.
 
+## 1.2.7 - 2026-03-18
+
+End-of-signal auto-detection for unattended capture.
+
+### Added
+
+- Automatically stop capture when no DV frames arrive
+  within 5 seconds (end of tape or device disconnect).
+- CDVQueue::GetWithTimeout() for timeout-based frame
+  retrieval.
+- CDV::m_autoStopTimeout (default 5000 ms, 0 to disable).
+- WM_DV_SIGNALLOST message with status bar notification
+  and alert sound.
+
+## 1.2.6 - 2026-03-18
+
+Low disk space warning during capture.
+
+### Added
+
+- Monitor free disk space approximately once per minute
+  during active capture.
+- When free space drops below 500 MB, display warning in
+  status bar and play alert sound.
+- WM_DV_LOWDISKSPACE message for UI notification.
+
+## 1.2.5 - 2026-03-18
+
+Complete error checking across all DirectShow pipeline code.
+
+### Fixed
+
+- CInputGraph::Run() — check m_MC->Run() return value.
+- CInputGraph::GetMediaType() — check ConnectionMediaType().
+- CAVIReader — check AddSourceFilter() and CoCreateInstance()
+  for both AVI Splitter and DV Mux.
+- CMonitor constructor — check RenderStream(), put_Owner(),
+  put_WindowStyle(), and m_MC->Run().
+- CMonitor::HandleFrame() — GetPointer() null check.
+- COutputGraph::HandleFrame() — TRACE on Deliver() failure.
+
 ## 1.2.4 - 2026-03-17
 
 Bugfixes, documentation, and code quality improvements.
