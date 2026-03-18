@@ -187,13 +187,29 @@ See [threading.md](threading.md) for queue details.
 For each frame dequeued it:
 
 1. Calls `GetDVRecordingTime()` to extract the camcorder timestamp.
-2. Posts `WM_DV_TIMECHANGE` to the parent window if the timestamp changed.
-3. Calls `CMonitor::HandleFrame()` when the queue is below half capacity
-   (preview throttling).
+2. Posts `WM_DV_TIMECHANGE` to the parent window if the timestamp
+   changed.
+3. Calls `CMonitor::HandleFrame()` when the queue is below half
+   capacity (preview throttling).
 4. Creates a new `CAVIWriter` if none is open or if a split condition
    is met (frame count limit or DV timestamp discontinuity).
 5. Calls `CAVIWriter::HandleFrame()` for every `m_everyNth` frame.
 6. Updates `m_counter`, `m_time`, and checks the timed capture limit.
+
+**Disk space monitoring (v1.2.6):**
+Every ~1500 frames the thread checks free disk space via
+`GetDiskFreeSpaceEx()` on the drive root of `m_captureFilename`.
+If less than 500 MB remains it posts `WM_DV_LOWDISKSPACE`
+(`WM_USER + 202`) to the dialog so the user can be warned without
+interrupting the capture in progress.
+
+**End-of-signal auto-stop (v1.2.7):**
+When `CDV::m_autoStopTimeout > 0` (default 5000 ms), the thread uses
+`CDVQueue::GetWithTimeout()` rather than the blocking `Get()`.
+A timeout without an EOS marker indicates the FireWire signal was lost.
+The thread posts `WM_DV_SIGNALLOST` (`WM_USER + 203`), transitions the
+state to `Finished`, and exits cleanly without requiring manual
+intervention.
 
 ### CAVIWriter
 

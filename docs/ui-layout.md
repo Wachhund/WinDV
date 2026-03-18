@@ -277,6 +277,56 @@ txt2.Format("%d:%02d:%02d.%01d", (int)t, m, s, ss);
 prevent the monitor from blanking during active capture or recording
 sessions.
 
+### Custom window messages
+
+WinDV defines several `WM_USER`-based messages for cross-thread
+notification.
+All are declared in `DShow.h` and routed via `ON_MESSAGE` entries in
+`CDVToolsDlg`'s message map.
+
+| Message | Value | Sender | Handler |
+| --- | --- | --- | --- |
+| `WM_DV_TIMECHANGE` | `+201` | Capturing | `OnDVTimeChange` |
+| `WM_DV_LOWDISKSPACE` | `+202` | Capturing | `OnDVLowDiskSpace` |
+| `WM_DV_SIGNALLOST` | `+203` | Capturing | `OnDVSignalLost` |
+
+#### `OnDVTimeChange()` (existing)
+
+Reads `lParam` as a `time_t` DV recording timestamp and updates
+the `m_status2` label.
+
+#### `OnDVLowDiskSpace()` (v1.2.6)
+
+Posted by `CapturingThread` when `GetDiskFreeSpaceEx()` reports fewer
+than 500 MB free on the capture destination drive.
+`lParam` carries the remaining free space in megabytes.
+
+The handler:
+
+1. Formats the string
+   `"WARNING: Low disk space! X MB remaining"` into `m_status`.
+2. Calls `MessageBeep(MB_ICONEXCLAMATION)` to produce an audible
+   alert.
+
+Capture continues; the handler does not stop or pause the pipeline.
+The warning is informational, allowing the user to decide whether to
+stop early.
+
+#### `OnDVSignalLost()` (v1.2.7)
+
+Posted by `CapturingThread` when `CDVQueue::GetWithTimeout()` times
+out without receiving a frame or an EOS marker, indicating the
+FireWire signal was lost.
+
+The handler:
+
+1. Sets `m_status` to `"Signal lost - capture stopped."`.
+2. Calls `MessageBeep(MB_ICONEXCLAMATION)`.
+
+The thread has already set the pipeline state to `Finished` before
+posting the message, so no additional stop call is required from the
+dialog.
+
 ---
 
 ## 6. Configuration dialogs

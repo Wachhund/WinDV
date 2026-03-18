@@ -18,6 +18,7 @@ For a description of what the build produces and how it fits together, see
 5. [Linked libraries and their purposes](#5-linked-libraries-and-their-purposes)
 6. [Compiler flags reference](#6-compiler-flags-reference)
 7. [Known issues with modern toolchains](#7-known-issues-with-modern-toolchains)
+8. [Proven build environment](#8-proven-build-environment)
 
 ---
 
@@ -242,3 +243,59 @@ On some systems it is necessary to replace `1394ohci.sys` with the legacy
 `ohci1394.sys` driver or use a third-party OHCI driver that supports the
 DV streaming interface that WinDV relies on.
 This is a driver-level issue unrelated to the build.
+
+---
+
+## 8. Proven build environment
+
+The configuration below has been verified to produce a working
+`WinDV.exe` (Release and Debug) with all features through v1.2.7.
+
+| Component | Version / Source |
+| --- | --- |
+| Host OS | Windows XP (VM) |
+| Compiler | Visual C++ 6.0 (MSVC 12.x) |
+| DirectX SDK | **DirectX 8.1 SDK** (archived at archive.org) |
+| BaseClasses | Bundled with the DirectX 8.1 SDK |
+
+### Why DirectX 8.1 specifically
+
+The DirectShow BaseClasses supplied with the **DirectX 8.1 SDK** are
+the latest version that ships pre-built VC6-compatible object files
+and headers.
+They use `DWORD`, `LONG`, and `int` exclusively — types that are the
+same width in both 32-bit and 64-bit contexts.
+
+Later SDKs introduced `DWORD_PTR` and `LONG_PTR` as pointer-sized
+integers.
+These expand to 64-bit types when compiled for a 64-bit target, but
+VC6 does not recognise them and will emit C2065 (undeclared identifier)
+or C2146 (syntax error) across dozens of BaseClasses headers.
+
+### SDKs confirmed incompatible with VC6
+
+| SDK | Reason incompatible |
+| --- | --- |
+| DirectX 9.0+ SDK (any version) | BaseClasses use `DWORD_PTR`, `LONG_PTR` |
+| Windows SDK 7.1 BaseClasses | Same `DWORD_PTR`/`LONG_PTR` issue |
+| DirectX June 2010 SDK Extras | Same `DWORD_PTR`/`LONG_PTR` issue |
+
+> **Note:** If you must use a later SDK for other reasons,
+> you may be able to substitute the BaseClasses source from the
+> DirectX 8.1 SDK into the later SDK's directory tree.
+> However, mixing SDK headers and BaseClasses from different SDK
+> generations is not tested and may introduce subtle ABI mismatches.
+
+### Recommended procedure
+
+1. Install Visual C++ 6.0 on a Windows XP host (physical or VM).
+2. Obtain the DirectX 8.1 SDK from a trusted archive
+   (e.g. the Internet Archive).
+3. Install the DirectX 8.1 SDK; note the installation path.
+4. Build the BaseClasses from
+   `<DX81SDK>\Samples\Multimedia\DirectShow\BaseClasses\`
+   for both Release and Debug.
+5. Update the WinDV `.dsp` include and library paths to point at the
+   DirectX 8.1 SDK installation if it differs from
+   `C:\Program Files\Microsoft SDK\`.
+6. Build WinDV.

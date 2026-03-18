@@ -139,6 +139,33 @@ In practice, `CapturingThread` passes the pointer directly to
 `CAVIWriter::HandleFrame()` (which calls `CopyMemory` internally) before
 calling `Get()` again.
 
+### Consumer: `CDVQueue::GetWithTimeout(duration, data, len, timeout)`
+
+Introduced in v1.2.7.
+Identical to `Get()` except that instead of blocking indefinitely on
+`m_evGet`, it uses `WaitForSingleObject(m_evGet, timeout)`.
+
+```text
+Acquire m_cs
+  if m_load > 0:
+    read m_queue[m_head]
+    advance m_head, decrement m_load
+    signal m_evPut
+    return true
+  else:
+    if m_end: return false
+    release m_cs
+    result = WaitForSingleObject(m_evGet, timeout)
+    if result == WAIT_TIMEOUT: return false  (signal lost)
+    retry
+```
+
+When the wait times out the function returns `false` with `*data == NULL`
+and `*len == 0`, which `CapturingThread` distinguishes from a genuine
+EOS (`m_end == true`) to detect signal loss.
+See [Section 4 — CapturingThread](#4-thread-lifecycle) for how the
+timeout drives the auto-stop behaviour.
+
 ---
 
 ## 3. Synchronisation primitives
@@ -155,6 +182,8 @@ calling `Get()` again.
 
 `CEvent` in the DirectShow BaseClasses wraps a Win32 manual-reset event.
 `CSingleLock::Lock()` on a `CEvent` calls `WaitForSingleObject(INFINITE)`.
+`CDVQueue::GetWithTimeout()` calls `WaitForSingleObject(m_evGet, timeout)`
+directly to support a finite wait without `CSingleLock`.
 
 `CAutoLock` is the RAII lock guard for `CCritSec`.
 It is used as a local variable:
@@ -250,6 +279,26 @@ Preview is sent only when the queue is **below half full**.
 A queue above half capacity means the disk is falling behind;
 skipping preview prevents the DV decoder and video renderer from
 competing with disk I/O for CPU time.
+
+#### Disk space monitoring (v1.2.6)
+
+Every ~1500 frames (approximately one minute at 25 fps)
+`CapturingThread` calls `GetDiskFreeSpaceEx()` on the drive root
+extracted from `m_captureFilename`.
+If fewer than 500 MB remain, it posts `WM_DV_LOWDISKSPACE`
+(`WM_USER + 202`) to the parent window.
+
+#### Signal loss detection (v1.2.7)
+
+When `CDV::m_autoStopTimeout > 0`, `CapturingThread` calls
+`CDVQueue::GetWithTimeout(…, m_autoStopTimeout)` instead of the
+blocking `Get()`.
+If `GetWithTimeout()` returns `false` without `m_end` being set
+(i.e. the wait timed out), the thread treats this as a lost signal:
+it posts `WM_DV_SIGNALLOST` (`WM_USER + 203`) to the parent window,
+sets the capture state to `Finished`, and exits.
+The default timeout is 5000 ms; setting `m_autoStopTimeout` to 0
+disables the feature and restores the original blocking behaviour.
 
 ### Record mode (RecordingThread)
 

@@ -368,6 +368,49 @@ Files are first written to a temporary name prefixed with `~`
 and renamed atomically on close, so interrupted captures do
 not leave partially-written files with their final name.
 
+### 4.8 Runtime Safety Features
+
+Several defensive features protect long unattended capture sessions.
+
+#### HRESULT checking (v1.2.5)
+
+All DirectShow pipeline calls are guarded with either the `CHECK_HR()`
+macro or explicit `SUCCEEDED()` tests.
+Previously unchecked call sites — including
+`CInputGraph::Run()`, `CInputGraph::GetMediaType()`,
+the `CAVIReader` and `CMonitor` constructors, and
+`CMonitor::HandleFrame()` — now throw `CDShowException` on failure
+rather than silently proceeding with an invalid state.
+`COutputGraph::HandleFrame()` emits a `TRACE` message when
+`Deliver()` fails, preserving diagnostic output in Debug builds
+without interrupting the pipeline.
+
+#### Low disk space warning (v1.2.6)
+
+During capture, `CapturingThread` checks `GetDiskFreeSpaceEx()` on
+the capture destination drive roughly once per minute (~1500 frames).
+When free space drops below 500 MB, it posts `WM_DV_LOWDISKSPACE`
+(`WM_USER + 202`) to the dialog.
+`CDVToolsDlg::OnDVLowDiskSpace()` displays
+`"WARNING: Low disk space! X MB remaining"` in the status bar and
+sounds `MessageBeep(MB_ICONEXCLAMATION)`.
+Capture is not stopped automatically; the operator decides whether
+to intervene.
+
+#### End-of-signal auto-stop (v1.2.7)
+
+`CDVQueue::GetWithTimeout()` wraps the normal `Get()` consumer with
+a `WaitForSingleObject` timeout.
+When `CDV::m_autoStopTimeout` is greater than zero (default: 5000 ms),
+`CapturingThread` uses this variant.
+If no frame arrives within the timeout window and no EOS marker is
+present, the thread interprets the condition as a lost FireWire signal,
+posts `WM_DV_SIGNALLOST` (`WM_USER + 203`), transitions the pipeline
+to `Finished`, and exits.
+`CDVToolsDlg::OnDVSignalLost()` shows
+`"Signal lost - capture stopped."` and beeps.
+Set `m_autoStopTimeout = 0` to disable the feature.
+
 ---
 
 ## 5. Module Reference
