@@ -14,41 +14,39 @@ For thread roles and synchronization, see
 ## Architecture at a Glance
 
 ```text
-+--------------------------------------------------+
-| CWinDVApp (WinDV.cpp)                            |
-|  COM init, process priority, registry key        |
-|  +-> CDVToolsDlg::DoModal()                      |
-+--------------------------------------------------+
-| CDVToolsDlg (DVToolsDlg.cpp)                     |
-|  MFC Dialog, Tab-UI, Resize-Engine, Registry I/O |
-|  CLI-Parser, Timer-based status update           |
-|  +- owns: CDV m_video                            |
-+--------------------------------------------------+
-| CDV (DShow.h/cpp) -- Orchestrator & CStatic      |
-|  State Machine:                                  |
-|    Idle <-> CapturePaused <-> Capturing           |
-|    Idle <-> RecordPaused  <-> Recording           |
-|                           --> Finished            |
-|  Owns: CDVInput|CAVIJoiner, CDVQueue,            |
-|        CAVIWriter|CDVOutput, CMonitor             |
-|  Threads: CapturingThread, RecordingThread        |
-+--------------------------------------------------+
-| DirectShow Abstraction (DShow.h/cpp)             |
-|  CFilterGraph                                    |
-|    +-> CInputGraph -> CAVIReader, CDVInput       |
-|    +-> COutputGraph -> CAVIWriter, CDVOutput,    |
-|                        CMonitor                  |
-|  CDVQueue    (ring buffer)                       |
-|  CDVControl  (IAMExtTransport)                   |
-|  CAVIJoiner  (multi-file sequencing)             |
-+--------------------------------------------------+
-| DV.cpp          SSYB subcode parser (BCD time)   |
-| DropFilesEdit   Drag-and-drop edit control       |
-| ToolTab         Owner-draw tab control           |
-| VideoDeviceSel  Device picker dialog             |
-| CaptureCfg      Capture config property page     |
-| RecordCfg       Record config property page      |
-+--------------------------------------------------+
+ CWinDVApp (WinDV.cpp)
+   COM init, process priority, registry key
+   '-> CDVToolsDlg::DoModal()
+ --------------------------------------------------
+ CDVToolsDlg (DVToolsDlg.cpp)
+   MFC Dialog, Tab-UI, Resize-Engine, Registry I/O
+   CLI-Parser, Timer-based status update
+   '- owns: CDV m_video
+ --------------------------------------------------
+ CDV (DShow.h/cpp) -- Orchestrator & CStatic
+   State Machine:
+     Idle <-> CapturePaused <-> Capturing
+     Idle <-> RecordPaused  <-> Recording
+                            --> Finished
+   Owns: CDVInput/CAVIJoiner, CDVQueue,
+         CAVIWriter/CDVOutput, CMonitor
+   Threads: CapturingThread, RecordingThread
+ --------------------------------------------------
+ DirectShow Abstraction (DShow.h/cpp)
+   CFilterGraph
+     '-> CInputGraph -> CAVIReader, CDVInput
+     '-> COutputGraph -> CAVIWriter, CDVOutput,
+                         CMonitor
+   CDVQueue    (ring buffer)
+   CDVControl  (IAMExtTransport)
+   CAVIJoiner  (multi-file sequencing)
+ --------------------------------------------------
+ DV.cpp          SSYB subcode parser (BCD time)
+ DropFilesEdit   Drag-and-drop edit control
+ ToolTab         Owner-draw tab control
+ VideoDeviceSel  Device picker dialog
+ CaptureCfg      Capture config property page
+ RecordCfg       Record config property page
 ```
 
 ---
