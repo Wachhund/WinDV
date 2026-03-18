@@ -335,6 +335,7 @@ BEGIN_MESSAGE_MAP(CDVToolsDlg, CDialog)
 	// Custom message posted by the CDV pipeline when a DV subcode timestamp changes.
 	ON_MESSAGE(WM_DV_TIMECHANGE, OnDVTimeChange)
 	ON_MESSAGE(WM_DV_LOWDISKSPACE, OnDVLowDiskSpace)
+	ON_MESSAGE(WM_DV_SIGNALLOST, OnDVSignalLost)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1329,6 +1330,20 @@ LRESULT CDVToolsDlg::OnDVLowDiskSpace(WPARAM, LPARAM lParam)
 	msg.Format("WARNING: Low disk space! %d MB remaining", (int)lParam);
 	m_status.SetWindowText(msg);
 	MessageBeep(MB_ICONWARNING);
+	return 0;
+}
+
+/* OnDVSignalLost -- handle the WM_DV_SIGNALLOST custom message.
+ *
+ * Posted by CapturingThread when no DV frames have been received
+ * within m_autoStopTimeout milliseconds.  This typically indicates
+ * end of tape or device disconnection.  The pipeline has already
+ * transitioned to Finished state; this handler updates the status.
+ */
+LRESULT CDVToolsDlg::OnDVSignalLost(WPARAM, LPARAM)
+{
+	m_status.SetWindowText("Signal lost - capture stopped.");
+	MessageBeep(MB_ICONEXCLAMATION);
 	return 0;
 }
 

@@ -153,6 +153,10 @@ protected:
 	 * when free disk space drops below 500 MB. Shows warning in status bar. */
 	afx_msg LRESULT OnDVLowDiskSpace(WPARAM, LPARAM);
 
+	/* OnDVSignalLost -- handles WM_DV_SIGNALLOST posted by CapturingThread
+	 * when no frames arrive within the auto-stop timeout. */
+	afx_msg LRESULT OnDVSignalLost(WPARAM, LPARAM);
+
 	// Generated message map functions
 	//{{AFX_MSG(CDVToolsDlg)
 	virtual BOOL OnInitDialog();

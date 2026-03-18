@@ -1742,6 +1742,39 @@ bool CDVQueue::Get(REFERENCE_TIME *duration, BYTE **data, int *len)
 	return true;
 }
 
+/*
+ * CDVQueue::GetWithTimeout  (consumer side, timeout variant)
+ *
+ * Same as Get(), but waits at most timeoutMs milliseconds for a frame
+ * to become available.  Returns false on timeout OR end-of-stream.
+ * Used by CapturingThread for end-of-signal auto-detection: if the DV
+ * device stops sending frames (tape end, disconnect), this returns
+ * false after the timeout instead of blocking indefinitely.
+ */
+bool CDVQueue::GetWithTimeout(REFERENCE_TIME *duration, BYTE **data, int *len, DWORD timeoutMs)
+{
+	for(;;) {
+		{
+			CAutoLock lock(&m_cs);
+			if (m_load > 0) {
+				*duration = m_queue[m_head]->duration;
+				*len = m_queue[m_head]->len;
+				*data = m_queue[m_head]->data;
+				m_head = (m_head+1) % m_queueSize;
+				m_load--;
+				m_evPut.SetEvent();
+				break;
+			}
+		}
+		if (m_end) return false;
+		/* Wait with timeout instead of blocking indefinitely. */
+		if (WaitForSingleObject(m_evGet.m_hObject, timeoutMs) == WAIT_TIMEOUT) {
+			return false;
+		}
+	}
+	return true;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CDV — top-level orchestrator
 /////////////////////////////////////////////////////////////////////////////
@@ -1777,7 +1810,8 @@ CDV::CDV()
 : m_aviJoiner(NULL), m_aviWriter(NULL), m_dvInput(NULL), m_dvOutput(NULL), m_monitor(NULL), m_queue(NULL),
   m_thread(NULL),
   m_type2AVI(true), m_discontinuityTreshold(1), m_maxAVIFrames(25*60*15), m_everyNth(1), m_recordPreview(TRUE),
-  m_dropped(0), m_counter(-1), m_time(-1), m_captureTime(0), m_ndigits(0), m_DVctrl(FALSE)
+  m_dropped(0), m_counter(-1), m_time(-1), m_captureTime(0), m_ndigits(0), m_DVctrl(FALSE),
+  m_autoStopTimeout(5000)
 {
 }
 
@@ -2101,7 +2135,20 @@ void CDV::CapturingThread()
 	m_time = 0;
 	/* m_state is checked at the top of the loop; Idle (0) exits immediately. */
 	while (m_state) {
-		if (m_queue->Get(&duration, &buffer, &len)) {
+		/* Use timeout-based Get when auto-stop is enabled (m_autoStopTimeout > 0).
+		 * If no frame arrives within the timeout, assume end of signal. */
+		bool gotFrame;
+		if (m_autoStopTimeout > 0)
+			gotFrame = m_queue->GetWithTimeout(&duration, &buffer, &len, m_autoStopTimeout);
+		else
+			gotFrame = m_queue->Get(&duration, &buffer, &len);
+		if (!gotFrame && !m_queue->m_end && m_state == Capturing) {
+			/* Timeout with no EOS: signal lost (tape end or device disconnect). */
+			GetParent()->PostMessage(WM_DV_SIGNALLOST, 0, 0);
+			m_state = Finished;
+			break;
+		}
+		if (gotFrame) {
 			/* Extract the camcorder recording timestamp from the DV SSYB subcode. */
 			long newDVTime = GetDVRecordingTime(buffer, len);
 			int deltaDVTime = 0;

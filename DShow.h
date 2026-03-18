@@ -38,6 +38,11 @@
  * wParam is unused; lParam is the remaining free space in megabytes. */
 #define WM_DV_LOWDISKSPACE	(WM_USER+202)
 
+/* Posted to the parent window when no DV frames have been received for
+ * m_autoStopTimeout milliseconds, indicating end of tape or device disconnect.
+ * wParam and lParam are unused. */
+#define WM_DV_SIGNALLOST	(WM_USER+203)
+
 /*
  * CDShowException
  *
@@ -627,6 +632,9 @@ public:
 	 * Returns false when end-of-stream has been signaled and the ring is empty.
 	 * *data points into the ring buffer and is valid only until the next Get() call. */
 	bool Get(REFERENCE_TIME *duration, BYTE **data, int *len);
+	/* Like Get(), but returns false if no frame arrives within timeoutMs.
+	 * Used by CapturingThread for end-of-signal auto-detection. */
+	bool GetWithTimeout(REFERENCE_TIME *duration, BYTE **data, int *len, DWORD timeoutMs);
 };
 
 /*
@@ -689,6 +697,10 @@ public:
 	bool m_recordPreview;
 	/* TRUE = send transport-control commands to the DV device automatically. */
 	bool m_DVctrl;
+	/* Timeout in milliseconds for end-of-signal auto-detection during capture.
+	 * If no frames arrive within this period, capture stops automatically.
+	 * 0 = disabled (wait indefinitely). Default: 5000 ms. */
+	DWORD m_autoStopTimeout;
 
 	CDV();
 	~CDV();
