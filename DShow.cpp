@@ -1650,7 +1650,7 @@ CDVQueue::CDVQueue(int queueSize, int dataSize)
 
 CDVQueue::~CDVQueue()
 {
-	delete m_buffers;
+	delete[] m_buffers;
 	delete[] m_queue;
 }
 
@@ -2126,7 +2126,7 @@ void CDV::CapturingThread()
 	int len;
 	CMediaType type;
 	m_dvInput->GetMediaType(&type);
-	long nFrames, counter;
+	long nFrames = 0, counter = 0;
 	/* Snapshot the driver's dropped-frame count at start; delta gives our count. */
 	long dropped = m_dvInput->GetDroppedFrames();
 	int dvTime = 0, oldDVTime = 0;
