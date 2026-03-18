@@ -35,10 +35,12 @@ functional on contemporary Windows versions.
 The canonical repository is at
 `https://github.com/hfiggs/WinDV`.
 
-The codebase has received no significant functional changes
-since the original release; the value of the project is the
-preservation of a working DV capture tool that still handles
-MiniDV tape archival on modern hardware.
+Since v1.2.4 the project has received active maintenance:
+comprehensive error checking, low disk space warnings,
+end-of-signal auto-detection, DV-only device filtering,
+and inline code documentation. The project continues to
+serve as a working DV capture tool for MiniDV tape
+archival on modern hardware.
 
 ---
 
@@ -619,6 +621,11 @@ Registry section: `Capture`
 The `DateTimeFormat` is applied to the DV recording timestamp
 embedded in the frame (when available) or to the wall-clock
 time at the moment recording starts.
+
+**Note:** `CDV::m_autoStopTimeout` (default 5000 ms) and
+the disk space threshold (500 MB) are currently compile-time
+constants in `DShow.cpp`, not persisted to the registry.
+To change them, modify the source and rebuild.
 
 ### Record Settings
 

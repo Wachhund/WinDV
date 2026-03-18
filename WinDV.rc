@@ -4,7 +4,7 @@
 //   - Dialog templates: main window (IDD_DVTOOLS_DIALOG), About box,
 //     device picker, capture config, record config
 //   - Icons: application icon (IDR_MAINFRAME), logo (IDI_WINDV)
-//   - Version info block (1.2.3)
+//   - Version info block (1.2.7)
 //   - Application manifest (RT_MANIFEST, type 24) for visual styles
 //   - String table: tab labels, About menu text, CLI usage text
 //

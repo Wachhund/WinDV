@@ -286,7 +286,8 @@ Every ~1500 frames (approximately one minute at 25 fps)
 `CapturingThread` calls `GetDiskFreeSpaceEx()` on the drive root
 extracted from `m_captureFilename`.
 If fewer than 500 MB remain, it posts `WM_DV_LOWDISKSPACE`
-(`WM_USER + 202`) to the parent window.
+(`WM_USER + 202`) to the parent window. `lParam` carries
+the remaining free space in megabytes.
 
 #### Signal loss detection (v1.2.7)
 
