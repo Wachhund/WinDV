@@ -34,6 +34,10 @@
  * wParam is unused; lParam is the new time_t value (0 = no timestamp). */
 #define WM_DV_TIMECHANGE	(WM_USER+201)
 
+/* Posted to the parent window when free disk space drops below the threshold.
+ * wParam is unused; lParam is the remaining free space in megabytes. */
+#define WM_DV_LOWDISKSPACE	(WM_USER+202)
+
 /*
  * CDShowException
  *

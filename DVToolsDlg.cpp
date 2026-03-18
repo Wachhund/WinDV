@@ -334,6 +334,7 @@ BEGIN_MESSAGE_MAP(CDVToolsDlg, CDialog)
 	ON_COMMAND_RANGE(IDC_TAB_CHANGE, IDC_TAB_CHANGE+99, OnCmdTabChange)
 	// Custom message posted by the CDV pipeline when a DV subcode timestamp changes.
 	ON_MESSAGE(WM_DV_TIMECHANGE, OnDVTimeChange)
+	ON_MESSAGE(WM_DV_LOWDISKSPACE, OnDVLowDiskSpace)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1312,6 +1313,22 @@ LRESULT CDVToolsDlg::OnDVTimeChange(WPARAM, LPARAM lParam)
 		strftime(buf, sizeof buf, "%d.%m.'%y %H:%M:%S", localtime(&lParam));
 	}
 	m_status2.SetWindowText(buf);
+	return 0;
+}
+
+/* OnDVLowDiskSpace -- handle the WM_DV_LOWDISKSPACE custom message.
+ *
+ * Posted by CapturingThread when free disk space drops below 500 MB.
+ * LPARAM carries the remaining free space in megabytes.
+ * Displays a warning in the status bar so the user can stop capture
+ * before data loss occurs.
+ */
+LRESULT CDVToolsDlg::OnDVLowDiskSpace(WPARAM, LPARAM lParam)
+{
+	CString msg;
+	msg.Format("WARNING: Low disk space! %d MB remaining", (int)lParam);
+	m_status.SetWindowText(msg);
+	MessageBeep(MB_ICONWARNING);
 	return 0;
 }
 

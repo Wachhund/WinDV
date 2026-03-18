@@ -149,6 +149,10 @@ protected:
 	 * carries the time_t timestamp which is formatted and written to m_status2. */
 	afx_msg LRESULT OnDVTimeChange(WPARAM, LPARAM);
 
+	/* OnDVLowDiskSpace -- handles WM_DV_LOWDISKSPACE posted by CapturingThread
+	 * when free disk space drops below 500 MB. Shows warning in status bar. */
+	afx_msg LRESULT OnDVLowDiskSpace(WPARAM, LPARAM);
+
 	// Generated message map functions
 	//{{AFX_MSG(CDVToolsDlg)
 	virtual BOOL OnInitDialog();

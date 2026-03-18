@@ -2096,6 +2096,7 @@ void CDV::CapturingThread()
 	/* Snapshot the driver's dropped-frame count at start; delta gives our count. */
 	long dropped = m_dvInput->GetDroppedFrames();
 	int dvTime = 0, oldDVTime = 0;
+	long diskCheckCounter = 0;
 	m_counter = 0;
 	m_time = 0;
 	/* m_state is checked at the top of the loop; Idle (0) exits immediately. */
@@ -2153,6 +2154,21 @@ void CDV::CapturingThread()
 				if (m_captureTime && (m_time >= m_captureTime)) {
 					m_captureTime = 0;
 					m_state = Finished;
+				}
+				/* Check free disk space approximately once per minute (~1500 frames).
+				 * If below 500 MB, notify the UI so the user can act before data loss. */
+				diskCheckCounter++;
+				if (diskCheckCounter >= 1500) {
+					diskCheckCounter = 0;
+					ULARGE_INTEGER freeBytes;
+					/* Extract drive root from the capture filename for the space query. */
+					CString drivePath = m_captureFilename.Left(3);
+					if (GetDiskFreeSpaceEx(drivePath, &freeBytes, NULL, NULL)) {
+						DWORD freeMB = (DWORD)(freeBytes.QuadPart / (1024 * 1024));
+						if (freeMB < 500) {
+							GetParent()->PostMessage(WM_DV_LOWDISKSPACE, 0, freeMB);
+						}
+					}
 				}
 				/* Update dropped-frame delta against the driver's running total. */
 				m_dropped = m_dvInput->GetDroppedFrames() - dropped;
