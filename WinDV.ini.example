@@ -1,0 +1,55 @@
+; WinDV.ini — Portable settings file
+;
+; To enable portable mode, rename this file to WinDV.ini
+; and place it next to WinDV.exe. All settings will be
+; stored here instead of the Windows Registry.
+;
+; WinDV writes these values automatically on exit.
+; You can also edit them manually while WinDV is closed.
+
+[MainWindow]
+; Window position and size (pixels)
+X=100
+Y=100
+W=640
+H=480
+; Last active tab: 0 = Capture, 1 = Record
+SelectedTool=0
+; DV transport control checkbox: 0 = off, 1 = on
+DVControlEnabled=0
+; Working directory for relative file paths
+WorkingDirectory=.
+
+[Capture]
+; FireWire capture device (friendly name)
+DVDevice=Microsoft DV Camera and VCR
+; Base path for capture output files (no extension)
+File=
+; AVI type: 0 = Type-1 (interleaved), 1 = Type-2 (split)
+Type2AVI=1
+; Timestamp jump (seconds) that triggers a new file; 0 = off
+DiscontinuityTreshold=1
+; Max frames per AVI before auto-split (25fps x 15min)
+MaxAVIFrames=22500
+; Frame decimation: 1 = all, 2 = every other, etc.
+EveryNth=1
+; Auto-stop timeout in milliseconds; 0 = disabled
+AutoStopTimeout=5000
+; strftime format for date/time in capture filenames
+DateTimeFormat=%y-%m-%d_%H-%M
+; Newline-separated history of recent format strings
+DateTimeFormatHistory=%y-%m-%d_%H-%M-%S
+; Zero-padded digit count for filename sequence number
+SuffixDigits=2
+
+[Record]
+; FireWire output device (friendly name)
+DVDevice=Microsoft DV Camera and VCR
+; Last used source file(s) for recording
+File=
+; Leader AVI files (pipe-separated), played before source
+AVIPrefix=
+; Trailer AVI files (pipe-separated), played after source
+AVISuffix=
+; Show preview during recording: 0 = off, 1 = on
+Preview=1
