@@ -31,6 +31,11 @@
 // infrastructure used throughout DShow.cpp.
 #include <streams.h>
 
+// VC6 compatibility: INVALID_FILE_ATTRIBUTES not defined in older SDKs.
+#ifndef INVALID_FILE_ATTRIBUTES
+#define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
+#endif
+
 #include <afxtempl.h>		// MFC template collections: CArray, CList, CMap
 #include <afxmt.h>		    // MFC synchronisation primitives: CCritSec, CEvent, CAutoLock
 
