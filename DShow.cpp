@@ -1776,6 +1776,58 @@ bool CDVQueue::GetWithTimeout(REFERENCE_TIME *duration, BYTE **data, int *len, D
 }
 
 /////////////////////////////////////////////////////////////////////////////
+// Capture Log
+/////////////////////////////////////////////////////////////////////////////
+
+/*
+ * WriteCaptureLog — append one CSV row summarizing a capture session.
+ *
+ * Creates the file with a header row if it does not exist yet.
+ * Silently returns if the file cannot be opened (e.g. read-only dir).
+ */
+void WriteCaptureLog(LPCSTR szLogPath, const CaptureStats& stats)
+{
+	static const char *stopReasons[] = {"USER", "SIGNAL_LOST", "LOW_DISK", "TIMED"};
+
+	BOOL isNew = (GetFileAttributes(szLogPath) == INVALID_FILE_ATTRIBUTES);
+	FILE *f = fopen(szLogPath, "a");
+	if (!f) return;
+
+	if (isNew) {
+		fprintf(f, "Timestamp,Filename,Format,Frames,Dropped,TapeStart,TapeEnd,Duration_s,StopReason\n");
+	}
+
+	/* Wall-clock timestamp for the log entry. */
+	time_t now = time(NULL);
+	char szNow[32];
+	strftime(szNow, sizeof szNow, "%Y-%m-%dT%H:%M:%S", localtime(&now));
+
+	/* Format tape timestamps (empty if not available). */
+	char szTapeStart[32] = "", szTapeEnd[32] = "";
+	if (stats.tFirstRecTime > 0)
+		strftime(szTapeStart, sizeof szTapeStart, "%Y-%m-%dT%H:%M:%S", localtime(&stats.tFirstRecTime));
+	if (stats.tLastRecTime > 0)
+		strftime(szTapeEnd, sizeof szTapeEnd, "%Y-%m-%dT%H:%M:%S", localtime(&stats.tLastRecTime));
+
+	DWORD durationSec = (GetTickCount() - stats.dwStartTick) / 1000;
+	const char *reason = (stats.eStopReason >= 0 && stats.eStopReason <= 3)
+		? stopReasons[stats.eStopReason] : "UNKNOWN";
+
+	fprintf(f, "%s,%s,%s,%lu,%lu,%s,%s,%lu,%s\n",
+		szNow,
+		(LPCSTR)stats.sFilename,
+		stats.bIsPAL ? "PAL" : "NTSC",
+		stats.dwFrameCount,
+		stats.dwDroppedFrames,
+		szTapeStart,
+		szTapeEnd,
+		durationSec,
+		reason);
+
+	fclose(f);
+}
+
+/////////////////////////////////////////////////////////////////////////////
 // CDV — top-level orchestrator
 /////////////////////////////////////////////////////////////////////////////
 
@@ -2131,6 +2183,13 @@ void CDV::CapturingThread()
 	long dropped = m_dvInput->GetDroppedFrames();
 	int dvTime = 0, oldDVTime = 0;
 	long diskCheckCounter = 0;
+	/* Capture statistics for the CSV log. */
+	CaptureStats capStats;
+	memset(&capStats, 0, sizeof capStats);
+	capStats.dwStartTick = GetTickCount();
+	capStats.tFirstRecTime = 0;
+	capStats.tLastRecTime = 0;
+	capStats.bIsPAL = (type.GetSampleSize() >= 144000);
 	m_counter = 0;
 	m_time = 0;
 	/* m_state is checked at the top of the loop; Idle (0) exits immediately. */
@@ -2144,6 +2203,7 @@ void CDV::CapturingThread()
 			gotFrame = m_queue->Get(&duration, &buffer, &len);
 		if (!gotFrame && !m_queue->m_end && m_state == Capturing) {
 			/* Timeout with no EOS: signal lost (tape end or device disconnect). */
+			capStats.eStopReason = 1; /* SIGNAL_LOST */
 			GetParent()->PostMessage(WM_DV_SIGNALLOST, 0, 0);
 			m_state = Finished;
 			break;
@@ -2162,6 +2222,11 @@ void CDV::CapturingThread()
 					oldDVTime = newDVTime;
 				}
 				dvTime = newDVTime;
+				/* Track first and last valid tape timestamps for the log. */
+				if (newDVTime > 0) {
+					if (capStats.tFirstRecTime == 0) capStats.tFirstRecTime = newDVTime;
+					capStats.tLastRecTime = newDVTime;
+				}
 				/* Notify the UI of the new recording timestamp. */
 				GetParent()->PostMessage(WM_DV_TIMECHANGE, 0, dvTime);
 			}
@@ -2200,6 +2265,7 @@ void CDV::CapturingThread()
 				/* Check whether the optional timed capture limit has been reached. */
 				if (m_captureTime && (m_time >= m_captureTime)) {
 					m_captureTime = 0;
+					capStats.eStopReason = 3; /* TIMED */
 					m_state = Finished;
 				}
 				/* Check free disk space approximately once per minute (~1500 frames).
@@ -2241,6 +2307,19 @@ void CDV::CapturingThread()
 	if (m_aviWriter) {
 		delete m_aviWriter;
 		m_aviWriter = NULL;
+	}
+	/* Write capture log CSV if any frames were captured. */
+	if (m_counter > 0) {
+		capStats.sFilename = m_captureFilename;
+		capStats.dwFrameCount = m_counter;
+		capStats.dwDroppedFrames = m_dropped;
+		/* Build log path next to the capture file. */
+		CString logPath = m_captureFilename;
+		int lastSep = logPath.ReverseFind('\\');
+		if (lastSep >= 0) logPath = logPath.Left(lastSep + 1);
+		else logPath = ".\\";
+		logPath += "WinDV_CaptureLog.csv";
+		WriteCaptureLog(logPath, capStats);
 	}
 	/* Notify the UI that timing info is no longer valid (clears the display). */
 	GetParent()->PostMessage(WM_DV_TIMECHANGE, 0, 0);

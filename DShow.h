@@ -682,6 +682,23 @@ public:
  *   m_state transitions are made on the UI thread or on the worker threads
  *   at well-defined synchronization points.
  */
+/* Statistics collected during a capture session, written to a CSV log
+ * when capture ends or a file is split. */
+struct CaptureStats {
+	CString sFilename;        /* output AVI filename */
+	DWORD   dwStartTick;      /* GetTickCount() at capture start */
+	time_t  tFirstRecTime;    /* first valid DV recording timestamp */
+	time_t  tLastRecTime;     /* last valid DV recording timestamp */
+	DWORD   dwFrameCount;     /* total frames written */
+	DWORD   dwDroppedFrames;  /* driver-reported dropped frames */
+	BOOL    bIsPAL;           /* TRUE=PAL (144000), FALSE=NTSC (120000) */
+	int     eStopReason;      /* 0=USER, 1=SIGNAL_LOST, 2=LOW_DISK, 3=TIMED */
+};
+
+/* Appends one log entry to the capture CSV. Creates the file with
+ * a header row if it does not yet exist. */
+void WriteCaptureLog(LPCSTR szLogPath, const CaptureStats& stats);
+
 class CDV:public CStatic, CFrameHandler  {
 public:
 	enum {Idle, RecordPaused, Recording, CapturePaused, Capturing, Finished} m_state;
