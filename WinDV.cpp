@@ -84,6 +84,30 @@ BOOL CWinDVApp::InitInstance()
 
 	SetRegistryKey("Petr Mourek");
 
+	/* Portable mode: if a WinDV.ini file exists next to the EXE,
+	 * redirect all GetProfile/WriteProfile calls to that INI file
+	 * instead of the registry.  MFC handles this automatically when
+	 * m_pszProfileName contains a file path (with backslash). */
+	{
+		char szIniPath[MAX_PATH];
+		GetModuleFileName(NULL, szIniPath, MAX_PATH);
+		/* Replace the EXE filename with "WinDV.ini". */
+		char *pSlash = strrchr(szIniPath, '\\');
+		if (pSlash) {
+			strcpy(pSlash + 1, "WinDV.ini");
+			if (GetFileAttributes(szIniPath) != INVALID_FILE_ATTRIBUTES) {
+				/* Verify the INI is writable before committing to portable mode. */
+				HANDLE hFile = CreateFile(szIniPath, GENERIC_WRITE, 0, NULL,
+				                          OPEN_EXISTING, 0, NULL);
+				if (hFile != INVALID_HANDLE_VALUE) {
+					CloseHandle(hFile);
+					free((void*)m_pszProfileName);
+					m_pszProfileName = _strdup(szIniPath);
+				}
+			}
+		}
+	}
+
 	CDVToolsDlg dlg;
 	m_pMainWnd = &dlg;
 	int nResponse = dlg.DoModal();
