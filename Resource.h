@@ -88,6 +88,8 @@
 #define IDC_NDIGITS                     1069
 #define IDC_FEXAMPLE                    1070
 #define IDC_DVCTRL                      1071
+#define IDC_CHK_AUTOSTOP                1072
+#define IDC_EDIT_AUTOSTOP               1073
 
 // Next default values for new objects
 //
@@ -95,7 +97,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1072
+#define _APS_NEXT_CONTROL_VALUE         1074
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

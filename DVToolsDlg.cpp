@@ -493,6 +493,7 @@ BOOL CDVToolsDlg::OnInitDialog()
 	m_video.m_discontinuityTreshold = AfxGetApp()->GetProfileInt("Capture", "DiscontinuityTreshold", m_video.m_discontinuityTreshold);
 	m_video.m_maxAVIFrames = AfxGetApp()->GetProfileInt("Capture", "MaxAVIFrames", m_video.m_maxAVIFrames);
 	m_video.m_everyNth = AfxGetApp()->GetProfileInt("Capture", "EveryNth", m_video.m_everyNth);
+	m_video.m_autoStopTimeout = AfxGetApp()->GetProfileInt("Capture", "AutoStopTimeout", m_video.m_autoStopTimeout);
 
 	// Filename date-time format and sequence counter settings.
 	m_DTFormat = AfxGetApp()->GetProfileString("Capture", "DateTimeFormat", "%y-%m-%d_%H-%M");
@@ -917,6 +918,7 @@ void CDVToolsDlg::OnClose()
 	AfxGetApp()->WriteProfileInt("Capture", "DiscontinuityTreshold", m_video.m_discontinuityTreshold);
 	AfxGetApp()->WriteProfileInt("Capture", "MaxAVIFrames", m_video.m_maxAVIFrames);
 	AfxGetApp()->WriteProfileInt("Capture", "EveryNth", m_video.m_everyNth);
+	AfxGetApp()->WriteProfileInt("Capture", "AutoStopTimeout", m_video.m_autoStopTimeout);
 
 	AfxGetApp()->WriteProfileString("Capture", "DateTimeFormat", m_DTFormat);
 	AfxGetApp()->WriteProfileString("Capture", "DateTimeFormatHistory", m_DTFormatHistory);
@@ -1171,6 +1173,8 @@ void CDVToolsDlg::OnConfig()
 	captureCfg.m_dtformat = m_DTFormat;
 	captureCfg.m_dtformathistory = m_DTFormatHistory;
 	captureCfg.m_ndigits = m_nSuffixDigits;
+	captureCfg.m_autoStopEnabled = m_video.m_autoStopTimeout > 0;
+	captureCfg.m_autoStopSeconds = m_video.m_autoStopTimeout > 0 ? m_video.m_autoStopTimeout / 1000 : 5;
 
 	recordCfg.m_aviPrefix = m_AVIPrefix;
 	recordCfg.m_aviSuffix = m_AVISuffix;
@@ -1193,6 +1197,7 @@ void CDVToolsDlg::OnConfig()
 		m_DTFormat = captureCfg.m_dtformat;
 		m_DTFormatHistory = captureCfg.m_dtformathistory;
 		m_nSuffixDigits = captureCfg.m_ndigits;
+		m_video.m_autoStopTimeout = captureCfg.m_autoStopEnabled ? captureCfg.m_autoStopSeconds * 1000 : 0;
 
 		m_AVIPrefix = recordCfg.m_aviPrefix;
 		m_AVISuffix = recordCfg.m_aviSuffix;

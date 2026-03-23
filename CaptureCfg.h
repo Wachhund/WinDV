@@ -54,6 +54,10 @@ public:
 	int			m_ndigits;          // current digit count selection index
 	//}}AFX_DATA
 
+	// Auto-stop on signal loss: checkbox state and timeout in seconds.
+	BOOL		m_autoStopEnabled;
+	UINT		m_autoStopSeconds;
+
 	// History list is not in the AFX_DATA block because it is not bound to a
 	// control directly; it is loaded into the combo as separate items.
 	CString m_dtformathistory;

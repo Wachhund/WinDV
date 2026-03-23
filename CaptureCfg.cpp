@@ -30,6 +30,8 @@ CCaptureCfg::CCaptureCfg()
 	m_dtformat = _T("");
 	m_ndigits = -1;
 	//}}AFX_DATA_INIT
+	m_autoStopEnabled = TRUE;
+	m_autoStopSeconds = 5;
 }
 
 
@@ -50,6 +52,9 @@ void CCaptureCfg::DoDataExchange(CDataExchange* pDX)
 	DDX_CBString(pDX, IDC_DTFORMAT, m_dtformat);
 	DDX_CBIndex(pDX, IDC_NDIGITS, m_ndigits);
 	//}}AFX_DATA_MAP
+	DDX_Check(pDX, IDC_CHK_AUTOSTOP, m_autoStopEnabled);
+	DDX_Text(pDX, IDC_EDIT_AUTOSTOP, m_autoStopSeconds);
+	DDV_MinMaxUInt(pDX, m_autoStopSeconds, 1, 60);
 }
 
 
