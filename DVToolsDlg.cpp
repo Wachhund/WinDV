@@ -502,22 +502,22 @@ BOOL CDVToolsDlg::OnInitDialog()
 	m_nSuffixDigits = AfxGetApp()->GetProfileInt("Capture", "SuffixDigits", 2);
 
 	// --- Command-line parsing ---
-	// Whitespace delimiters for strtok-based tokenisation.
-	char *delim = " \t\n";
+	// Use CRT-parsed __argc/__argv for correct handling of quoted paths.
 	CString err;
-	LPSTR arg = strtok(AfxGetApp()->m_lpCmdLine, delim);
+	int argi = 1;  /* __argv[0] is the exe path */
+	char *arg = (argi < __argc) ? __argv[argi++] : NULL;
 	if (arg) {
 		if (strcmp(arg,"capture")==0) {
 			// Switch to the Capture tab and apply it before starting.
 			m_toolTab.SetCurSel(0);
 			LRESULT result;
 			OnSelchangeToolTab(NULL, &result);
-			arg = strtok(NULL, delim);
+			arg = (argi < __argc) ? __argv[argi++] : NULL;
 
 			// Optional -exit flag: close the dialog when the pipeline finishes.
 			if (arg && strcmp(arg,"-exit")==0) {
 				m_exitOnFinish = 1;
-				arg = strtok(NULL, delim);
+				arg = (argi < __argc) ? __argv[argi++] : NULL;
 			}
 			if (!arg) {
 				CString tmp; tmp.LoadString(IDS_USAGE);
@@ -567,7 +567,7 @@ timusec:
 					if (*arg) goto timerr;
 				}
 
-				arg = strtok(NULL, delim);
+				arg = (argi < __argc) ? __argv[argi++] : NULL;
 				if (!arg) {
 timerr:
 					CString tmp; tmp.LoadString(IDS_USAGE);
@@ -579,7 +579,7 @@ timerr:
 					t = t * 10000000 + us;
 
 					CString file = arg;
-					arg = strtok(NULL, delim);
+					arg = (argi < __argc) ? __argv[argi++] : NULL;
 					if (arg) {
 						// Extra argument: usage error.
 						CString tmp; tmp.LoadString(IDS_USAGE);
@@ -606,24 +606,24 @@ timerr:
 			m_toolTab.SetCurSel(1);
 			LRESULT result;
 			OnSelchangeToolTab(NULL, &result);
-			arg = strtok(NULL, delim);
+			arg = (argi < __argc) ? __argv[argi++] : NULL;
 
 			// Optional -exit flag.
 			if (arg && strcmp(arg,"-exit")==0) {
 				m_exitOnFinish = 1;
-				arg = strtok(NULL, delim);
+				arg = (argi < __argc) ? __argv[argi++] : NULL;
 			}
 			if (!arg) {
 				CString tmp; tmp.LoadString(IDS_USAGE);
 				err += tmp;
 			}
 			else {
-				// Collect all remaining tokens as pipe-delimited source files.
+				// Collect all remaining arguments as pipe-delimited source files.
 				CString files;
 				while (arg) {
 					if (!files.IsEmpty()) files += " | ";
 					files += arg;
-					arg = strtok(NULL, delim);
+					arg = (argi < __argc) ? __argv[argi++] : NULL;
 				}
 				TRY {
 					m_FSRC.SetWindowText(files);
@@ -640,20 +640,21 @@ timerr:
 		}
 		else if (strcmp(arg,"check")==0) {
 			/* CLI AVI integrity check: WinDV check [-v] <file.avi> [...] */
-			arg = strtok(NULL, delim);
+			arg = (argi < __argc) ? __argv[argi++] : NULL;
 			BOOL bVerbose = FALSE;
 			if (arg && strcmp(arg,"-v")==0) {
 				bVerbose = TRUE;
-				arg = strtok(NULL, delim);
+				arg = (argi < __argc) ? __argv[argi++] : NULL;
 			}
 			if (!arg) {
 				err += "Usage: WinDV check [-v] <file.avi> [file2.avi ...]\r\n";
 			} else {
-				/* Attach to parent console for stdout output. */
-				HANDLE hOut = INVALID_HANDLE_VALUE;
-				if (AttachConsole((DWORD)-1)) {
-					hOut = CreateFile("CONOUT$", GENERIC_WRITE,
-						FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+				/* Use inherited stdout (works with cmd redirection and CI).
+				 * Fall back to parent console for interactive use. */
+				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+				if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
+					AttachConsole((DWORD)-1);
+					hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 				}
 				int exitCode = 0;
 				while (arg) {
@@ -670,7 +671,7 @@ timerr:
 								CString path = dir + fd.cFileName;
 								AVICheckResult r = CheckAVIIntegrity(path);
 								CString line = FormatCheckResult(r, path, bVerbose) + "\r\n";
-								if (hOut != INVALID_HANDLE_VALUE) {
+								if (hOut != NULL && hOut != INVALID_HANDLE_VALUE) {
 									DWORD written;
 									WriteFile(hOut, (LPCSTR)line, line.GetLength(), &written, NULL);
 								}
@@ -682,15 +683,14 @@ timerr:
 					} else {
 						CString line;
 						line.Format("FAIL %s: Datei nicht gefunden\r\n", arg);
-						if (hOut != INVALID_HANDLE_VALUE) {
+						if (hOut != NULL && hOut != INVALID_HANDLE_VALUE) {
 							DWORD written;
 							WriteFile(hOut, (LPCSTR)line, line.GetLength(), &written, NULL);
 						}
 						if (exitCode < 2) exitCode = 2;
 					}
-					arg = strtok(NULL, delim);
+					arg = (argi < __argc) ? __argv[argi++] : NULL;
 				}
-				if (hOut != INVALID_HANDLE_VALUE) CloseHandle(hOut);
 				ExitProcess(exitCode);
 			}
 		}
