@@ -285,7 +285,7 @@ BOOL
 CMsgThread::CreateThread(
     )
 {
-    m_hSem = CreateSemaphoreEx(NULL, 0, 0x7FFFFFFF, NULL, 0, SEMAPHORE_ALL_ACCESS);
+    m_hSem = CreateSemaphore(NULL, 0, 0x7FFFFFFF, NULL);
     if (m_hSem == NULL) {
         return FALSE;
     }
