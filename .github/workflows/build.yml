@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure (Win32, Release)
+        run: cmake -B build -G "Visual Studio 17 2022" -A Win32
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Smoke Test (--version)
+        run: |
+          $out = & .\build\Release\WinDV.exe --version 2>&1
+          Write-Host $out
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          if ($out -notmatch "WinDV") { Write-Host "Version string missing"; exit 1 }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinDV-Release
+          path: build/Release/WinDV.exe

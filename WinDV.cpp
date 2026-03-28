@@ -6,6 +6,7 @@
 //
 
 #include "stdafx.h"
+#include "Version.h"
 #include "WinDV.h"
 #include "DropFilesEdit.h"
 #include "DShow.h"
@@ -117,6 +118,29 @@ BOOL CWinDVApp::InitInstance()
 					m_pszProfileName = _strdup(szIniPath);
 				}
 			}
+		}
+	}
+
+	/* Handle --version before creating any windows.
+	 * Attaches to the parent console (or allocates one) and writes the
+	 * version string via STD_OUTPUT_HANDLE so that CI runners and
+	 * PowerShell can capture the output with $out = & exe. */
+	{
+		LPCSTR cmd = m_lpCmdLine;
+		while (*cmd == ' ' || *cmd == '\t') cmd++;
+		if (strncmp(cmd, "--version", 9) == 0 &&
+		    (cmd[9] == '\0' || cmd[9] == ' ' || cmd[9] == '\t')) {
+			if (!AttachConsole((DWORD)-1))
+				AllocConsole();
+			HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+			if (hOut != INVALID_HANDLE_VALUE && hOut != NULL) {
+				char buf[64];
+				int len = wsprintfA(buf, "WinDV %s\r\n", VER_STRING);
+				DWORD written;
+				WriteFile(hOut, buf, len, &written, NULL);
+			}
+			CoUninitialize();
+			ExitProcess(0);
 		}
 	}
 
