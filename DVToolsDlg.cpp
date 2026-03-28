@@ -1373,7 +1373,8 @@ LRESULT CDVToolsDlg::OnDVTimeChange(WPARAM, LPARAM lParam)
 {
 	char buf[100] = "";
 	if (lParam > 0) {
-		strftime(buf, sizeof buf, "%d.%m.'%y %H:%M:%S", localtime(&lParam));
+		time_t t = (time_t)lParam;
+		strftime(buf, sizeof buf, "%d.%m.'%y %H:%M:%S", localtime(&t));
 	}
 	m_status2.SetWindowText(buf);
 	return 0;
