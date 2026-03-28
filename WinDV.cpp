@@ -122,18 +122,19 @@ BOOL CWinDVApp::InitInstance()
 	}
 
 	/* Handle --version before creating any windows.
-	 * Attaches to the parent console (or allocates one) and writes the
-	 * version string via STD_OUTPUT_HANDLE so that CI runners and
-	 * PowerShell can capture the output with $out = & exe. */
+	 * Try the inherited stdout first (works with cmd.exe redirection).
+	 * Only attach to parent console if no stdout is available. */
 	{
 		LPCSTR cmd = m_lpCmdLine;
 		while (*cmd == ' ' || *cmd == '\t') cmd++;
 		if (strncmp(cmd, "--version", 9) == 0 &&
 		    (cmd[9] == '\0' || cmd[9] == ' ' || cmd[9] == '\t')) {
-			if (!AttachConsole((DWORD)-1))
-				AllocConsole();
 			HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-			if (hOut != INVALID_HANDLE_VALUE && hOut != NULL) {
+			if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
+				AttachConsole((DWORD)-1);
+				hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+			}
+			if (hOut != NULL && hOut != INVALID_HANDLE_VALUE) {
 				char buf[64];
 				int len = wsprintfA(buf, "WinDV %s\r\n", VER_STRING);
 				DWORD written;
