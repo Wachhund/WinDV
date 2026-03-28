@@ -67,6 +67,18 @@ BOOL CWinDVApp::InitInstance()
 {
 	AfxEnableControlContainer();
 
+	/* Enable DPI awareness on Vista+ for sharp rendering on high-DPI displays.
+	 * On Windows XP, GetProcAddress returns NULL and nothing happens. */
+	{
+		typedef BOOL (WINAPI *PFN_SetProcessDPIAware)(void);
+		HMODULE hUser32 = GetModuleHandle("user32.dll");
+		if (hUser32) {
+			PFN_SetProcessDPIAware pfn = (PFN_SetProcessDPIAware)
+				GetProcAddress(hUser32, "SetProcessDPIAware");
+			if (pfn) pfn();
+		}
+	}
+
 	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 
 	// Standard initialization
