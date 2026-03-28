@@ -91,3 +91,7 @@ target_link_libraries(WinDV PRIVATE
 if(NOT STATIC_MFC)
     set_property(TARGET WinDV APPEND_STRING PROPERTY LINK_FLAGS " /NODEFAULTLIB:libcmt")
 endif()
+
+# The manifest is already embedded via WinDV.rc (IDR_MANIFEST).
+# Disable linker-generated manifest to avoid duplicate resource error.
+set_target_properties(WinDV PROPERTIES LINK_FLAGS "/MANIFEST:NO")
