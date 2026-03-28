@@ -19,11 +19,12 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Smoke Test (--version)
+        shell: cmd
         run: |
-          $out = & .\build\Release\WinDV.exe --version 2>&1
-          Write-Host $out
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          if ($out -notmatch "WinDV") { Write-Host "Version string missing"; exit 1 }
+          build\Release\WinDV.exe --version > version_out.txt 2>&1
+          if %ERRORLEVEL% NEQ 0 exit /b 1
+          findstr /C:"WinDV" version_out.txt
+          if %ERRORLEVEL% NEQ 0 (echo Version string missing & type version_out.txt & exit /b 1)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
