@@ -157,6 +157,10 @@ protected:
 	 * when no frames arrive within the auto-stop timeout. */
 	afx_msg LRESULT OnDVSignalLost(WPARAM, LPARAM);
 
+	/* OnDVCheckComplete -- handles WM_DV_CHECK_COMPLETE posted after a
+	 * post-capture AVI integrity check. wParam = bValid (1=OK, 0=errors). */
+	afx_msg LRESULT OnDVCheckComplete(WPARAM, LPARAM);
+
 	// Generated message map functions
 	//{{AFX_MSG(CDVToolsDlg)
 	virtual BOOL OnInitDialog();

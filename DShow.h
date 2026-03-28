@@ -30,6 +30,8 @@
  *   On failure, CDShowException is thrown and caught by MFC TRY/CATCH_ALL.
  */
 
+#include "AVICheck.h"
+
 /* Posted to the parent window when the DV recording timestamp changes.
  * wParam is unused; lParam is the new time_t value (0 = no timestamp). */
 #define WM_DV_TIMECHANGE	(WM_USER+201)
@@ -42,6 +44,11 @@
  * m_autoStopTimeout milliseconds, indicating end of tape or device disconnect.
  * wParam and lParam are unused. */
 #define WM_DV_SIGNALLOST	(WM_USER+203)
+
+/* Posted to the parent window after a post-capture AVI integrity check.
+ * wParam = bValid (1=OK, 0=errors found); lParam is unused.
+ * The full result is available via CDV::GetLastCheckResult(). */
+#define WM_DV_CHECK_COMPLETE	(WM_USER+204)
 
 /*
  * CDShowException
@@ -693,6 +700,9 @@ struct CaptureStats {
 	DWORD   dwDroppedFrames;  /* driver-reported dropped frames */
 	BOOL    bIsPAL;           /* TRUE=PAL (144000), FALSE=NTSC (120000) */
 	int     eStopReason;      /* 0=USER, 1=SIGNAL_LOST, 2=LOW_DISK, 3=TIMED */
+	BOOL    bCheckPassed;     /* AVI integrity check: overall result */
+	DWORD   dwCheckDefect;    /* AVI integrity check: defective frames */
+	BOOL    bCheckIndex;      /* AVI integrity check: index present */
 };
 
 /* Appends one log entry to the capture CSV. Creates the file with
@@ -762,7 +772,13 @@ public:
 	void RecordingThread();
 	/* Thread body for DV-to-AVI capture; drains CDVQueue into CAVIWriter(s). */
 	void CapturingThread();
+
+	/* Returns the result of the last post-capture AVI integrity check.
+	 * Valid after WM_DV_CHECK_COMPLETE is received. */
+	AVICheckResult GetLastCheckResult() { return m_lastCheckResult; }
+
 protected:
+	AVICheckResult m_lastCheckResult;
 	/* Pipeline components — all owned by CDV, created/destroyed per session. */
 	CAVIJoiner *m_aviJoiner;   /* source for recording mode */
 	CAVIWriter *m_aviWriter;   /* sink for capture mode (replaced on split) */

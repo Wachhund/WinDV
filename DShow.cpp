@@ -1794,7 +1794,7 @@ void WriteCaptureLog(LPCSTR szLogPath, const CaptureStats& stats)
 	if (!f) return;
 
 	if (isNew) {
-		fprintf(f, "Timestamp,Filename,Format,Frames,Dropped,TapeStart,TapeEnd,Duration_s,StopReason\n");
+		fprintf(f, "Timestamp,Filename,Format,Frames,Dropped,TapeStart,TapeEnd,Duration_s,StopReason,AVI_OK,Frames_Defekt,Index_Vorhanden\n");
 	}
 
 	/* Wall-clock timestamp for the log entry. */
@@ -1813,7 +1813,7 @@ void WriteCaptureLog(LPCSTR szLogPath, const CaptureStats& stats)
 	const char *reason = (stats.eStopReason >= 0 && stats.eStopReason <= 3)
 		? stopReasons[stats.eStopReason] : "UNKNOWN";
 
-	fprintf(f, "%s,%s,%s,%lu,%lu,%s,%s,%lu,%s\n",
+	fprintf(f, "%s,%s,%s,%lu,%lu,%s,%s,%lu,%s,%d,%lu,%d\n",
 		szNow,
 		(LPCSTR)stats.sFilename,
 		stats.bIsPAL ? "PAL" : "NTSC",
@@ -1822,7 +1822,10 @@ void WriteCaptureLog(LPCSTR szLogPath, const CaptureStats& stats)
 		szTapeStart,
 		szTapeEnd,
 		durationSec,
-		reason);
+		reason,
+		stats.bCheckPassed ? 1 : 0,
+		stats.dwCheckDefect,
+		stats.bCheckIndex ? 1 : 0);
 
 	fclose(f);
 }
@@ -2185,11 +2188,16 @@ void CDV::CapturingThread()
 	long diskCheckCounter = 0;
 	/* Capture statistics for the CSV log. */
 	CaptureStats capStats;
-	memset(&capStats, 0, sizeof capStats);
 	capStats.dwStartTick = GetTickCount();
 	capStats.tFirstRecTime = 0;
 	capStats.tLastRecTime = 0;
+	capStats.dwFrameCount = 0;
+	capStats.dwDroppedFrames = 0;
 	capStats.bIsPAL = (type.GetSampleSize() >= 144000);
+	capStats.eStopReason = 0;
+	capStats.bCheckPassed = FALSE;
+	capStats.dwCheckDefect = 0;
+	capStats.bCheckIndex = FALSE;
 	m_counter = 0;
 	m_time = 0;
 	/* m_state is checked at the top of the loop; Idle (0) exits immediately. */
@@ -2313,6 +2321,15 @@ void CDV::CapturingThread()
 		capStats.sFilename = m_captureFilename;
 		capStats.dwFrameCount = m_counter;
 		capStats.dwDroppedFrames = m_dropped;
+
+		/* Run AVI integrity check on the finished file. */
+		m_lastCheckResult = CheckAVIIntegrity(m_captureFilename);
+		capStats.bCheckPassed = m_lastCheckResult.bValid
+			&& m_lastCheckResult.dwDefectFrames == 0
+			&& m_lastCheckResult.bHasIndex;
+		capStats.dwCheckDefect = m_lastCheckResult.dwDefectFrames;
+		capStats.bCheckIndex = m_lastCheckResult.bHasIndex;
+
 		/* Build log path next to the capture file. */
 		CString logPath = m_captureFilename;
 		int lastSep = logPath.ReverseFind('\\');
@@ -2320,6 +2337,10 @@ void CDV::CapturingThread()
 		else logPath = ".\\";
 		logPath += "WinDV_CaptureLog.csv";
 		WriteCaptureLog(logPath, capStats);
+
+		/* Notify the UI about the check result. */
+		GetParent()->PostMessage(WM_DV_CHECK_COMPLETE,
+			(WPARAM)capStats.bCheckPassed, 0);
 	}
 	/* Notify the UI that timing info is no longer valid (clears the display). */
 	GetParent()->PostMessage(WM_DV_TIMECHANGE, 0, 0);

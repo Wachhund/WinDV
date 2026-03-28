@@ -336,6 +336,7 @@ BEGIN_MESSAGE_MAP(CDVToolsDlg, CDialog)
 	ON_MESSAGE(WM_DV_TIMECHANGE, OnDVTimeChange)
 	ON_MESSAGE(WM_DV_LOWDISKSPACE, OnDVLowDiskSpace)
 	ON_MESSAGE(WM_DV_SIGNALLOST, OnDVSignalLost)
+	ON_MESSAGE(WM_DV_CHECK_COMPLETE, OnDVCheckComplete)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -635,6 +636,62 @@ timerr:
 					Exception2Status(e);
 				}
 				END_CATCH_ALL;
+			}
+		}
+		else if (strcmp(arg,"check")==0) {
+			/* CLI AVI integrity check: WinDV check [-v] <file.avi> [...] */
+			arg = strtok(NULL, delim);
+			BOOL bVerbose = FALSE;
+			if (arg && strcmp(arg,"-v")==0) {
+				bVerbose = TRUE;
+				arg = strtok(NULL, delim);
+			}
+			if (!arg) {
+				err += "Usage: WinDV check [-v] <file.avi> [file2.avi ...]\r\n";
+			} else {
+				/* Attach to parent console for stdout output. */
+				HANDLE hOut = INVALID_HANDLE_VALUE;
+				if (AttachConsole((DWORD)-1)) {
+					hOut = CreateFile("CONOUT$", GENERIC_WRITE,
+						FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+				}
+				int exitCode = 0;
+				while (arg) {
+					WIN32_FIND_DATA fd;
+					CString dir;
+					CString pattern = arg;
+					int sep = pattern.ReverseFind('\\');
+					if (sep >= 0) dir = pattern.Left(sep + 1);
+
+					HANDLE hFind = FindFirstFile(arg, &fd);
+					if (hFind != INVALID_HANDLE_VALUE) {
+						do {
+							if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+								CString path = dir + fd.cFileName;
+								AVICheckResult r = CheckAVIIntegrity(path);
+								CString line = FormatCheckResult(r, path, bVerbose) + "\r\n";
+								if (hOut != INVALID_HANDLE_VALUE) {
+									DWORD written;
+									WriteFile(hOut, (LPCSTR)line, line.GetLength(), &written, NULL);
+								}
+								if (!r.bValid || r.dwDefectFrames > 0 || !r.bHasIndex)
+									exitCode = 1;
+							}
+						} while (FindNextFile(hFind, &fd));
+						FindClose(hFind);
+					} else {
+						CString line;
+						line.Format("FAIL %s: Datei nicht gefunden\r\n", arg);
+						if (hOut != INVALID_HANDLE_VALUE) {
+							DWORD written;
+							WriteFile(hOut, (LPCSTR)line, line.GetLength(), &written, NULL);
+						}
+						if (exitCode < 2) exitCode = 2;
+					}
+					arg = strtok(NULL, delim);
+				}
+				if (hOut != INVALID_HANDLE_VALUE) CloseHandle(hOut);
+				ExitProcess(exitCode);
 			}
 		}
 		else {
@@ -1349,6 +1406,21 @@ LRESULT CDVToolsDlg::OnDVSignalLost(WPARAM, LPARAM)
 {
 	m_status.SetWindowText("Signal lost - capture stopped.");
 	MessageBeep(MB_ICONEXCLAMATION);
+	return 0;
+}
+
+LRESULT CDVToolsDlg::OnDVCheckComplete(WPARAM wParam, LPARAM)
+{
+	const AVICheckResult& r = m_video.GetLastCheckResult();
+	CString msg;
+	if (wParam) {
+		msg.Format("AVI OK: %lu frames, %s",
+			r.dwFrameCount, r.bIsPAL ? "PAL" : "NTSC");
+	} else {
+		msg.Format("AVI problem: %s", (LPCSTR)r.sError);
+		MessageBeep(MB_ICONWARNING);
+	}
+	m_status.SetWindowText(msg);
 	return 0;
 }
 
