@@ -31,6 +31,7 @@
  */
 
 #include "AVICheck.h"
+#include "DVError.h"
 
 /* Posted to the parent window when the DV recording timestamp changes.
  * wParam is unused; lParam is the new time_t value (0 = no timestamp). */
@@ -703,6 +704,10 @@ struct CaptureStats {
 	BOOL    bCheckPassed;     /* AVI integrity check: overall result */
 	DWORD   dwCheckDefect;    /* AVI integrity check: defective frames */
 	BOOL    bCheckIndex;      /* AVI integrity check: index present */
+	/* WDV-10: DV error detection */
+	ErrorStats errorStats;    /* cumulative DV error statistics */
+	/* WDV-11: SHA-256 checksum */
+	char    szSHA256[65];     /* hex string (64 chars + NUL), empty if disabled */
 };
 
 /* Appends one log entry to the capture CSV. Creates the file with
@@ -728,6 +733,8 @@ public:
 	 * If no frames arrive within this period, capture stops automatically.
 	 * 0 = disabled (wait indefinitely). Default: 5000 ms. */
 	DWORD m_autoStopTimeout;
+	/* WDV-11: TRUE = compute SHA-256 checksum after capture and write sidecar. */
+	bool m_enableSHA256;
 
 	CDV();
 	~CDV();
@@ -744,6 +751,8 @@ public:
 	REFERENCE_TIME GetTime();
 	/* Returns the filename of the currently open AVI file (thread-safe). */
 	CString GetCaptureFilename();
+	/* WDV-10: Returns a snapshot of the current DV error statistics (thread-safe). */
+	ErrorStats GetErrorStats();
 
 	/* Tears down the entire pipeline and resets state to Idle. */
 	void Destroy();
@@ -779,6 +788,9 @@ public:
 
 protected:
 	AVICheckResult m_lastCheckResult;
+	/* WDV-10: Cumulative DV error statistics, updated by CapturingThread.
+	 * Access from UI thread via GetErrorStats() which copies under m_cs lock. */
+	ErrorStats m_errorStats;
 	/* Pipeline components — all owned by CDV, created/destroyed per session. */
 	CAVIJoiner *m_aviJoiner;   /* source for recording mode */
 	CAVIWriter *m_aviWriter;   /* sink for capture mode (replaced on split) */
@@ -821,3 +833,18 @@ void GetVideoDstList(CArray<CString,CString&> &);
 /* Formats tim using strftime with the given format string.
  * Returns an empty string if format is empty. */
 CString FormatTime(LPCSTR format, time_t tim);
+
+/* WDV-11: Compute SHA-256 of a file and write a sha256sum-compatible sidecar.
+ * Returns TRUE on success and fills szHashOut (65 bytes) with the hex string.
+ * Returns FALSE on file-read error (szHashOut is set to empty string). */
+BOOL ComputeFileSHA256(LPCSTR szFilePath, char szHashOut[65]);
+
+/* WDV-11: Write a sha256sum-compatible sidecar file (.sha256).
+ * szSidecarPath: full path to the .sha256 file.
+ * szHash: 64-char hex string.  szFilename: bare filename (no path).
+ * bAppend: TRUE to append (scene split), FALSE to overwrite. */
+void WriteSHA256Sidecar(LPCSTR szSidecarPath, LPCSTR szHash, LPCSTR szFilename, BOOL bAppend);
+
+/* WDV-11: Verify a file against its sha256sum-compatible sidecar.
+ * Returns 0=OK, 1=mismatch, 2=sidecar not found/unreadable. */
+int VerifyFileSHA256(LPCSTR szFilePath);

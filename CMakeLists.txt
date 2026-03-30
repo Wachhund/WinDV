@@ -11,7 +11,7 @@
 # (no MFC DLL dependency on target machine), pass -DSTATIC_MFC=ON.
 
 cmake_minimum_required(VERSION 3.16)
-project(WinDV VERSION 1.4.0 LANGUAGES CXX)
+project(WinDV VERSION 1.6.0 LANGUAGES C CXX)
 
 # ---- MFC configuration ----
 option(STATIC_MFC "Link MFC statically instead of as shared DLL" OFF)
@@ -31,6 +31,7 @@ set(WINDV_SOURCES
     DropFilesEdit.cpp
     DShow.cpp
     DV.cpp
+    DVError.cpp
     DVToolsDlg.cpp
     RecordCfg.cpp
     StdAfx.cpp
@@ -45,9 +46,11 @@ set(WINDV_HEADERS
     DropFilesEdit.h
     DShow.h
     DV.h
+    DVError.h
     DVToolsDlg.h
     RecordCfg.h
     Resource.h
+    sha256.h
     StdAfx.h
     ToolTab.h
     Version.h
@@ -55,7 +58,16 @@ set(WINDV_HEADERS
     WinDV.h
 )
 
-add_executable(WinDV WIN32 ${WINDV_SOURCES} ${WINDV_HEADERS} WinDV.rc)
+# SHA-256: pure C file, compiled separately from C++ sources.
+# Excluded from precompiled headers (no StdAfx.h dependency).
+set(WINDV_C_SOURCES
+    sha256.c
+)
+
+add_executable(WinDV WIN32 ${WINDV_SOURCES} ${WINDV_C_SOURCES} ${WINDV_HEADERS} WinDV.rc)
+
+# Exclude sha256.c from precompiled headers (pure C, no StdAfx.h).
+set_source_files_properties(sha256.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
 # ---- Compiler settings ----
 target_compile_definitions(WinDV PRIVATE

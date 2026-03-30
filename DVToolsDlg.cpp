@@ -495,6 +495,7 @@ BOOL CDVToolsDlg::OnInitDialog()
 	m_video.m_maxAVIFrames = AfxGetApp()->GetProfileInt("Capture", "MaxAVIFrames", m_video.m_maxAVIFrames);
 	m_video.m_everyNth = AfxGetApp()->GetProfileInt("Capture", "EveryNth", m_video.m_everyNth);
 	m_video.m_autoStopTimeout = AfxGetApp()->GetProfileInt("Capture", "AutoStopTimeout", m_video.m_autoStopTimeout);
+	m_video.m_enableSHA256 = AfxGetApp()->GetProfileInt("Capture", "SHA256", m_video.m_enableSHA256) > 0;
 
 	// Filename date-time format and sequence counter settings.
 	m_DTFormat = AfxGetApp()->GetProfileString("Capture", "DateTimeFormat", "%y-%m-%d_%H-%M");
@@ -688,6 +689,94 @@ timerr:
 							WriteFile(hOut, (LPCSTR)line, line.GetLength(), &written, NULL);
 						}
 						if (exitCode < 2) exitCode = 2;
+					}
+					arg = (argi < __argc) ? __argv[argi++] : NULL;
+				}
+				ExitProcess(exitCode);
+			}
+		}
+		else if (strcmp(arg,"hash")==0) {
+			/* CLI SHA-256: WinDV hash [-q] <file> [...] */
+			arg = (argi < __argc) ? __argv[argi++] : NULL;
+			BOOL bQuiet = FALSE;
+			if (arg && strcmp(arg,"-q")==0) {
+				bQuiet = TRUE;
+				arg = (argi < __argc) ? __argv[argi++] : NULL;
+			}
+			if (!arg) {
+				err += "Usage: WinDV hash [-q] <file> [file2 ...]\r\n";
+			} else {
+				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+				if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
+					AttachConsole((DWORD)-1);
+					hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+				}
+				int exitCode = 0;
+				while (arg) {
+					char szHash[65];
+					if (ComputeFileSHA256(arg, szHash)) {
+						/* Extract bare filename for output. */
+						CString bareName = arg;
+						int sep = bareName.ReverseFind('\\');
+						if (sep >= 0) bareName = bareName.Mid(sep + 1);
+
+						CString line;
+						line.Format("%s *%s\r\n", szHash, (LPCSTR)bareName);
+						if (hOut != NULL && hOut != INVALID_HANDLE_VALUE) {
+							DWORD written;
+							WriteFile(hOut, (LPCSTR)line, line.GetLength(), &written, NULL);
+						}
+						/* Write sidecar unless -q (quiet) mode. */
+						if (!bQuiet) {
+							CString sidecarPath;
+							sidecarPath.Format("%s.sha256", arg);
+							WriteSHA256Sidecar(sidecarPath, szHash, bareName, FALSE);
+						}
+					} else {
+						CString line;
+						line.Format("FAIL %s: file not readable\r\n", arg);
+						if (hOut != NULL && hOut != INVALID_HANDLE_VALUE) {
+							DWORD written;
+							WriteFile(hOut, (LPCSTR)line, line.GetLength(), &written, NULL);
+						}
+						if (exitCode < 2) exitCode = 2;
+					}
+					arg = (argi < __argc) ? __argv[argi++] : NULL;
+				}
+				ExitProcess(exitCode);
+			}
+		}
+		else if (strcmp(arg,"verify")==0) {
+			/* CLI SHA-256 verify: WinDV verify <file> [...] */
+			arg = (argi < __argc) ? __argv[argi++] : NULL;
+			if (!arg) {
+				err += "Usage: WinDV verify <file> [file2 ...]\r\n";
+			} else {
+				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+				if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
+					AttachConsole((DWORD)-1);
+					hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+				}
+				int exitCode = 0;
+				while (arg) {
+					int result = VerifyFileSHA256(arg);
+					CString line;
+					switch (result) {
+					case 0:
+						line.Format("%s: OK\r\n", arg);
+						break;
+					case 1:
+						line.Format("%s: FAILED\r\n", arg);
+						if (exitCode < 1) exitCode = 1;
+						break;
+					default:
+						line.Format("%s: sidecar not found or unreadable\r\n", arg);
+						if (exitCode < 2) exitCode = 2;
+						break;
+					}
+					if (hOut != NULL && hOut != INVALID_HANDLE_VALUE) {
+						DWORD written;
+						WriteFile(hOut, (LPCSTR)line, line.GetLength(), &written, NULL);
 					}
 					arg = (argi < __argc) ? __argv[argi++] : NULL;
 				}
@@ -976,6 +1065,7 @@ void CDVToolsDlg::OnClose()
 	AfxGetApp()->WriteProfileInt("Capture", "MaxAVIFrames", m_video.m_maxAVIFrames);
 	AfxGetApp()->WriteProfileInt("Capture", "EveryNth", m_video.m_everyNth);
 	AfxGetApp()->WriteProfileInt("Capture", "AutoStopTimeout", m_video.m_autoStopTimeout);
+	AfxGetApp()->WriteProfileInt("Capture", "SHA256", m_video.m_enableSHA256);
 
 	AfxGetApp()->WriteProfileString("Capture", "DateTimeFormat", m_DTFormat);
 	AfxGetApp()->WriteProfileString("Capture", "DateTimeFormatHistory", m_DTFormatHistory);
@@ -1232,6 +1322,7 @@ void CDVToolsDlg::OnConfig()
 	captureCfg.m_ndigits = m_nSuffixDigits;
 	captureCfg.m_autoStopEnabled = m_video.m_autoStopTimeout > 0;
 	captureCfg.m_autoStopSeconds = m_video.m_autoStopTimeout > 0 ? m_video.m_autoStopTimeout / 1000 : 5;
+	captureCfg.m_enableSHA256 = m_video.m_enableSHA256;
 
 	recordCfg.m_aviPrefix = m_AVIPrefix;
 	recordCfg.m_aviSuffix = m_AVISuffix;
@@ -1255,6 +1346,7 @@ void CDVToolsDlg::OnConfig()
 		m_DTFormatHistory = captureCfg.m_dtformathistory;
 		m_nSuffixDigits = captureCfg.m_ndigits;
 		m_video.m_autoStopTimeout = captureCfg.m_autoStopEnabled ? captureCfg.m_autoStopSeconds * 1000 : 0;
+		m_video.m_enableSHA256 = captureCfg.m_enableSHA256;
 
 		m_AVIPrefix = recordCfg.m_aviPrefix;
 		m_AVISuffix = recordCfg.m_aviSuffix;
@@ -1339,8 +1431,19 @@ void CDVToolsDlg::OnTimer(UINT nIDEvent)
 	}
 
 	// Build queue-load string for states where the queue is actively draining.
+	// WDV-10: Append DV error count and percentage during capture.
 	switch (m_video.GetState()) {
-	case CDV::Capturing:
+	case CDV::Capturing: {
+		ErrorStats es = m_video.GetErrorStats();
+		if (es.dwFramesWithVideoErrors > 0 && es.dwTotalFrames > 0) {
+			double pct = 100.0 * es.dwFramesWithVideoErrors / es.dwTotalFrames;
+			txt3.Format(" Q:%i E:%lu/%.1f%%", m_video.GetQueueLoad(),
+				es.dwFramesWithVideoErrors, pct);
+		} else {
+			txt3.Format(" Q:%i E:0", m_video.GetQueueLoad());
+		}
+		break;
+	}
 	case CDV::Recording:
 	case CDV::RecordPaused:
 		txt3.Format(" Q:%i", m_video.GetQueueLoad());
@@ -1413,6 +1516,7 @@ LRESULT CDVToolsDlg::OnDVSignalLost(WPARAM, LPARAM)
 LRESULT CDVToolsDlg::OnDVCheckComplete(WPARAM wParam, LPARAM)
 {
 	const AVICheckResult& r = m_video.GetLastCheckResult();
+	ErrorStats es = m_video.GetErrorStats();
 	CString msg;
 	if (wParam) {
 		msg.Format("AVI OK: %lu frames, %s",
@@ -1421,6 +1525,35 @@ LRESULT CDVToolsDlg::OnDVCheckComplete(WPARAM wParam, LPARAM)
 		msg.Format("AVI problem: %s", (LPCSTR)r.sError);
 		MessageBeep(MB_ICONWARNING);
 	}
+
+	/* WDV-10: Append DV error summary to the status message. */
+	if (es.dwTotalFrames > 0) {
+		CString errMsg;
+		if (es.dwFramesWithVideoErrors == 0 && es.dwFramesWithAudioErrors == 0) {
+			errMsg = " | DV: error-free";
+		} else {
+			double pct = 100.0 * es.dwFramesWithVideoErrors / es.dwTotalFrames;
+			errMsg.Format(" | DV errors: %lu frames (%.1f%%)",
+				es.dwFramesWithVideoErrors, pct);
+			if (es.dwWorstFrameErrors > 0) {
+				CString worst;
+				worst.Format(", worst: #%lu (%lu STA)", es.dwWorstFrameNumber, es.dwWorstFrameErrors);
+				errMsg += worst;
+			}
+			if (es.dwFramesWithAudioErrors > 0) {
+				CString audio;
+				audio.Format(", audio: %lu frames", es.dwFramesWithAudioErrors);
+				errMsg += audio;
+			}
+			if (es.dwTotalSTA_F > 0) {
+				CString critical;
+				critical.Format(" [%lu CRITICAL]", es.dwTotalSTA_F);
+				errMsg += critical;
+			}
+		}
+		msg += errMsg;
+	}
+
 	m_status.SetWindowText(msg);
 	return 0;
 }

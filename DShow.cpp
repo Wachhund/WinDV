@@ -2,6 +2,7 @@
 #include <process.h>
 #include "DShow.h"
 #include "DV.h"
+#include "sha256.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // Utility / helpers
@@ -1776,6 +1777,107 @@ bool CDVQueue::GetWithTimeout(REFERENCE_TIME *duration, BYTE **data, int *len, D
 }
 
 /////////////////////////////////////////////////////////////////////////////
+// SHA-256 helpers (WDV-11)
+/////////////////////////////////////////////////////////////////////////////
+
+/*
+ * ComputeFileSHA256 — read a file in 64 KB blocks and compute its SHA-256.
+ *
+ * On success, writes the 64-char lowercase hex hash to szHashOut and returns TRUE.
+ * On failure (file not found, read error), sets szHashOut[0] = '\0' and returns FALSE.
+ */
+BOOL ComputeFileSHA256(LPCSTR szFilePath, char szHashOut[65])
+{
+	szHashOut[0] = '\0';
+
+	HANDLE hFile = CreateFile(szFilePath, GENERIC_READ, FILE_SHARE_READ,
+		NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+		return FALSE;
+
+	SHA256_CTX ctx;
+	sha256_init(&ctx);
+
+	BYTE buf[65536];
+	DWORD dwRead;
+	while (ReadFile(hFile, buf, sizeof buf, &dwRead, NULL) && dwRead > 0) {
+		sha256_update(&ctx, buf, dwRead);
+	}
+
+	CloseHandle(hFile);
+
+	unsigned char hash[32];
+	sha256_final(&ctx, hash);
+	sha256_hex(hash, szHashOut);
+
+	return TRUE;
+}
+
+/*
+ * WriteSHA256Sidecar — write a sha256sum-compatible sidecar file.
+ *
+ * Format: "<64-hex> *<filename>\n"
+ * bAppend=TRUE appends a line (for scene-split mode).
+ * bAppend=FALSE overwrites (single file capture).
+ */
+void WriteSHA256Sidecar(LPCSTR szSidecarPath, LPCSTR szHash, LPCSTR szFilename, BOOL bAppend)
+{
+	FILE *f = fopen(szSidecarPath, bAppend ? "a" : "w");
+	if (!f) return;
+	fprintf(f, "%s *%s\n", szHash, szFilename);
+	fclose(f);
+}
+
+/*
+ * VerifyFileSHA256 — verify a file against its .sha256 sidecar.
+ *
+ * Returns: 0 = OK, 1 = hash mismatch, 2 = sidecar not found or unreadable.
+ */
+int VerifyFileSHA256(LPCSTR szFilePath)
+{
+	CString sidecarPath;
+	sidecarPath.Format("%s.sha256", szFilePath);
+
+	FILE *f = fopen(sidecarPath, "r");
+	if (!f) return 2;
+
+	/* Extract bare filename from path for matching. */
+	CString bareName = szFilePath;
+	int sep = bareName.ReverseFind('\\');
+	if (sep >= 0) bareName = bareName.Mid(sep + 1);
+
+	/* Scan sidecar lines for a matching filename. */
+	char line[512];
+	char expectedHash[65] = "";
+	while (fgets(line, sizeof line, f)) {
+		/* Format: "<64hex> *<filename>\n" or "<64hex>  <filename>\n" */
+		if (strlen(line) < 66) continue;
+		char *star = strchr(line + 64, '*');
+		if (!star) star = strchr(line + 64, ' ');
+		if (!star) continue;
+		star++;
+		while (*star == ' ') star++;
+		/* Strip trailing newline/CR. */
+		char *end = star + strlen(star) - 1;
+		while (end >= star && (*end == '\n' || *end == '\r')) *end-- = '\0';
+		if (_stricmp(star, bareName) == 0) {
+			memcpy(expectedHash, line, 64);
+			expectedHash[64] = '\0';
+			break;
+		}
+	}
+	fclose(f);
+
+	if (expectedHash[0] == '\0') return 2;
+
+	char actualHash[65];
+	if (!ComputeFileSHA256(szFilePath, actualHash))
+		return 2;
+
+	return (_stricmp(expectedHash, actualHash) == 0) ? 0 : 1;
+}
+
+/////////////////////////////////////////////////////////////////////////////
 // Capture Log
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1794,7 +1896,7 @@ void WriteCaptureLog(LPCSTR szLogPath, const CaptureStats& stats)
 	if (!f) return;
 
 	if (isNew) {
-		fprintf(f, "Timestamp,Filename,Format,Frames,Dropped,TapeStart,TapeEnd,Duration_s,StopReason,AVI_OK,Frames_Defekt,Index_Vorhanden\n");
+		fprintf(f, "Timestamp,Filename,Format,Frames,Dropped,TapeStart,TapeEnd,Duration_s,StopReason,AVI_OK,Frames_Defekt,Index_Vorhanden,Fehler_Frames,Fehler_Bloecke_Video,Fehler_Bloecke_Audio,Fehler_Prozent,Schlimmster_Frame,Even_Odd_Delta,SHA256\n");
 	}
 
 	/* Wall-clock timestamp for the log entry. */
@@ -1813,7 +1915,14 @@ void WriteCaptureLog(LPCSTR szLogPath, const CaptureStats& stats)
 	const char *reason = (stats.eStopReason >= 0 && stats.eStopReason <= 3)
 		? stopReasons[stats.eStopReason] : "UNKNOWN";
 
-	fprintf(f, "%s,%s,%s,%lu,%lu,%s,%s,%lu,%s,%d,%lu,%d\n",
+	/* WDV-10: Compute error percentage and even/odd delta. */
+	double errorPct = 0.0;
+	if (stats.errorStats.dwTotalFrames > 0)
+		errorPct = 100.0 * stats.errorStats.dwFramesWithVideoErrors / stats.errorStats.dwTotalFrames;
+	long evenOddDelta = (long)stats.errorStats.dwVideoErrorsEven - (long)stats.errorStats.dwVideoErrorsOdd;
+	if (evenOddDelta < 0) evenOddDelta = -evenOddDelta;
+
+	fprintf(f, "%s,%s,%s,%lu,%lu,%s,%s,%lu,%s,%d,%lu,%d,%lu,%lu,%lu,%.2f,%lu,%ld,%s\n",
 		szNow,
 		(LPCSTR)stats.sFilename,
 		stats.bIsPAL ? "PAL" : "NTSC",
@@ -1825,7 +1934,14 @@ void WriteCaptureLog(LPCSTR szLogPath, const CaptureStats& stats)
 		reason,
 		stats.bCheckPassed ? 1 : 0,
 		stats.dwCheckDefect,
-		stats.bCheckIndex ? 1 : 0);
+		stats.bCheckIndex ? 1 : 0,
+		stats.errorStats.dwFramesWithVideoErrors,
+		stats.errorStats.dwTotalVideoErrorBlocks,
+		stats.errorStats.dwTotalAudioErrorBlocks,
+		errorPct,
+		stats.errorStats.dwWorstFrameNumber,
+		evenOddDelta,
+		stats.szSHA256);
 
 	fclose(f);
 }
@@ -1866,8 +1982,10 @@ CDV::CDV()
   m_thread(NULL),
   m_type2AVI(true), m_discontinuityTreshold(1), m_maxAVIFrames(25*60*15), m_everyNth(1), m_recordPreview(TRUE),
   m_dropped(0), m_counter(-1), m_time(-1), m_captureTime(0), m_ndigits(0), m_DVctrl(FALSE),
-  m_autoStopTimeout(5000)
+  m_autoStopTimeout(5000),
+  m_enableSHA256(true)
 {
+	ResetErrorStats(&m_errorStats);
 }
 
 CDV::~CDV()
@@ -1913,6 +2031,13 @@ int CDV::GetQueueLoad()
 	return m_queue->m_load;
 }
 
+/* WDV-10: Returns a snapshot of the current DV error statistics.
+ * Copies under m_cs lock for safe access from the UI timer thread. */
+ErrorStats CDV::GetErrorStats()
+{
+	CAutoLock lock(&m_cs);
+	return m_errorStats;
+}
 
 /* Returns the filename of the currently open AVI file (thread-safe via m_cs). */
 CString CDV::GetCaptureFilename()
@@ -2198,6 +2323,10 @@ void CDV::CapturingThread()
 	capStats.bCheckPassed = FALSE;
 	capStats.dwCheckDefect = 0;
 	capStats.bCheckIndex = FALSE;
+	ResetErrorStats(&capStats.errorStats);
+	capStats.szSHA256[0] = '\0';
+	/* WDV-10: Reset cumulative error stats for this session. */
+	ResetErrorStats(&m_errorStats);
 	m_counter = 0;
 	m_time = 0;
 	/* m_state is checked at the top of the loop; Idle (0) exits immediately. */
@@ -2238,6 +2367,13 @@ void CDV::CapturingThread()
 				/* Notify the UI of the new recording timestamp. */
 				GetParent()->PostMessage(WM_DV_TIMECHANGE, 0, dvTime);
 			}
+			/* WDV-10: Analyze the DV frame for error concealment flags (STA). */
+			FrameErrorInfo frameErrors = AnalyzeDVFrame(buffer, len);
+			{
+				CAutoLock lock(&m_cs);
+				AccumulateErrorStats(&m_errorStats, &frameErrors, m_errorStats.dwTotalFrames);
+			}
+
 			/* Only send frames to the preview if the queue is below the halfway mark;
 			 * when the queue fills up, skip preview to prioritise disk writes. */
 			if (m_queue->m_load < m_queue->m_queueSize/2)
@@ -2322,6 +2458,12 @@ void CDV::CapturingThread()
 		capStats.dwFrameCount = m_counter;
 		capStats.dwDroppedFrames = m_dropped;
 
+		/* WDV-10: Copy final error stats into capStats for the CSV log. */
+		{
+			CAutoLock lock(&m_cs);
+			capStats.errorStats = m_errorStats;
+		}
+
 		/* Run AVI integrity check on the finished file. */
 		m_lastCheckResult = CheckAVIIntegrity(m_captureFilename);
 		capStats.bCheckPassed = m_lastCheckResult.bValid
@@ -2329,6 +2471,21 @@ void CDV::CapturingThread()
 			&& m_lastCheckResult.bHasIndex;
 		capStats.dwCheckDefect = m_lastCheckResult.dwDefectFrames;
 		capStats.bCheckIndex = m_lastCheckResult.bHasIndex;
+
+		/* WDV-11: Compute SHA-256 of the finalized AVI file and write sidecar. */
+		if (m_enableSHA256) {
+			if (ComputeFileSHA256(m_captureFilename, capStats.szSHA256)) {
+				/* Extract bare filename for the sidecar line. */
+				CString bareName = m_captureFilename;
+				int sep = bareName.ReverseFind('\\');
+				if (sep >= 0) bareName = bareName.Mid(sep + 1);
+
+				/* Write sidecar next to the capture file. */
+				CString sidecarPath;
+				sidecarPath.Format("%s.sha256", (LPCSTR)m_captureFilename);
+				WriteSHA256Sidecar(sidecarPath, capStats.szSHA256, bareName, FALSE);
+			}
+		}
 
 		/* Build log path next to the capture file. */
 		CString logPath = m_captureFilename;

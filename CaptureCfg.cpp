@@ -32,6 +32,7 @@ CCaptureCfg::CCaptureCfg()
 	//}}AFX_DATA_INIT
 	m_autoStopEnabled = TRUE;
 	m_autoStopSeconds = 5;
+	m_enableSHA256 = TRUE;
 }
 
 
@@ -55,6 +56,7 @@ void CCaptureCfg::DoDataExchange(CDataExchange* pDX)
 	DDX_Check(pDX, IDC_CHK_AUTOSTOP, m_autoStopEnabled);
 	DDX_Text(pDX, IDC_EDIT_AUTOSTOP, m_autoStopSeconds);
 	DDV_MinMaxUInt(pDX, m_autoStopSeconds, 1, 60);
+	DDX_Check(pDX, IDC_CHK_SHA256, m_enableSHA256);
 }
 
 

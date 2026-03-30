@@ -58,6 +58,9 @@ public:
 	BOOL		m_autoStopEnabled;
 	UINT		m_autoStopSeconds;
 
+	// WDV-11: SHA-256 checksum option.
+	BOOL		m_enableSHA256;
+
 	// History list is not in the AFX_DATA block because it is not bound to a
 	// control directly; it is loaded into the combo as separate items.
 	CString m_dtformathistory;
