@@ -1346,7 +1346,7 @@ void CDVToolsDlg::OnConfig()
 		m_DTFormatHistory = captureCfg.m_dtformathistory;
 		m_nSuffixDigits = captureCfg.m_ndigits;
 		m_video.m_autoStopTimeout = captureCfg.m_autoStopEnabled ? captureCfg.m_autoStopSeconds * 1000 : 0;
-		m_video.m_enableSHA256 = captureCfg.m_enableSHA256;
+		m_video.m_enableSHA256 = (captureCfg.m_enableSHA256 != 0);
 
 		m_AVIPrefix = recordCfg.m_aviPrefix;
 		m_AVISuffix = recordCfg.m_aviSuffix;
