@@ -131,7 +131,7 @@ BOOL CWinDVApp::InitInstance()
 		    (cmd[9] == '\0' || cmd[9] == ' ' || cmd[9] == '\t')) {
 			HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 			if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
-				AttachConsole((DWORD)-1);
+				SafeAttachConsole();
 				hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 			}
 			if (hOut != NULL && hOut != INVALID_HANDLE_VALUE) {

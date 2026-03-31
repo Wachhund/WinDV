@@ -654,7 +654,7 @@ timerr:
 				 * Fall back to parent console for interactive use. */
 				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 				if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
-					AttachConsole((DWORD)-1);
+					SafeAttachConsole();
 					hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 				}
 				int exitCode = 0;
@@ -708,7 +708,7 @@ timerr:
 			} else {
 				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 				if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
-					AttachConsole((DWORD)-1);
+					SafeAttachConsole();
 					hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 				}
 				int exitCode = 0;
@@ -754,7 +754,7 @@ timerr:
 			} else {
 				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 				if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
-					AttachConsole((DWORD)-1);
+					SafeAttachConsole();
 					hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 				}
 				int exitCode = 0;

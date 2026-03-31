@@ -31,10 +31,29 @@
 // infrastructure used throughout DShow.cpp.
 #include <streams.h>
 
-// VC6 compatibility: INVALID_FILE_ATTRIBUTES not defined in older SDKs.
+// VC6 compatibility: constants not defined in older Platform SDKs.
 #ifndef INVALID_FILE_ATTRIBUTES
 #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
 #endif
+#ifndef INVALID_SET_FILE_POINTER
+#define INVALID_SET_FILE_POINTER ((DWORD)-1)
+#endif
+
+/* VC6 compatibility: AttachConsole() requires Windows XP+ and is not declared
+ * in the VC6 Platform SDK headers.  Load dynamically via GetProcAddress so
+ * the binary links on Win2000 (degrades gracefully: console output simply
+ * won't work in interactive mode, but redirected stdout still does). */
+__inline BOOL SafeAttachConsole(void)
+{
+	typedef BOOL (WINAPI *PFN_AttachConsole)(DWORD);
+	HMODULE hKernel32 = GetModuleHandle("kernel32.dll");
+	if (hKernel32) {
+		PFN_AttachConsole pfn = (PFN_AttachConsole)
+			GetProcAddress(hKernel32, "AttachConsole");
+		if (pfn) return pfn((DWORD)-1);  /* ATTACH_PARENT_PROCESS */
+	}
+	return FALSE;
+}
 
 #include <afxtempl.h>		// MFC template collections: CArray, CList, CMap
 #include <afxmt.h>		    // MFC synchronisation primitives: CCritSec, CEvent, CAutoLock
