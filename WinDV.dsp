@@ -114,11 +114,20 @@ SOURCE=.\DV.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\DVError.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\DVToolsDlg.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\RecordCfg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\sha256.c
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -167,6 +176,10 @@ SOURCE=.\DV.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DVError.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\DVToolsDlg.h
 # End Source File
 # Begin Source File
@@ -176,6 +189,10 @@ SOURCE=.\RecordCfg.h
 # Begin Source File
 
 SOURCE=.\Resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\sha256.h
 # End Source File
 # Begin Source File
 
