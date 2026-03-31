@@ -1350,7 +1350,7 @@ void CDVToolsDlg::OnConfig()
 
 		m_AVIPrefix = recordCfg.m_aviPrefix;
 		m_AVISuffix = recordCfg.m_aviSuffix;
-		m_video.m_recordPreview = recordCfg.m_recordPreview > 0;
+		m_video.m_recordPreview = (recordCfg.m_recordPreview != 0);
 //		InitVideo();
 	}
 }

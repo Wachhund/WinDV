@@ -2306,7 +2306,8 @@ void CDV::CapturingThread()
 	int len;
 	CMediaType type;
 	m_dvInput->GetMediaType(&type);
-	long nFrames = 0, counter = 0;
+	UINT nFrames = 0;
+	long counter = 0;
 	/* Snapshot the driver's dropped-frame count at start; delta gives our count. */
 	long dropped = m_dvInput->GetDroppedFrames();
 	int dvTime = 0, oldDVTime = 0;
@@ -2348,13 +2349,14 @@ void CDV::CapturingThread()
 		if (gotFrame) {
 			/* Extract the camcorder recording timestamp from the DV SSYB subcode. */
 			long newDVTime = GetDVRecordingTime(buffer, len);
-			int deltaDVTime = 0;
+			UINT deltaDVTime = 0;
 			if (dvTime != newDVTime) {
 				if (newDVTime > 0) {
 					if (oldDVTime > 0) {
 						/* Compute absolute delta to detect tape cuts (sign-independent). */
-						deltaDVTime = newDVTime - oldDVTime;
-						if (deltaDVTime < 0) deltaDVTime = -deltaDVTime;
+						long rawDelta = newDVTime - oldDVTime;
+						if (rawDelta < 0) rawDelta = -rawDelta;
+						deltaDVTime = (UINT)rawDelta;
 					}
 					oldDVTime = newDVTime;
 				}
