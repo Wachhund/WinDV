@@ -189,12 +189,18 @@ For each frame dequeued it:
 1. Calls `GetDVRecordingTime()` to extract the camcorder timestamp.
 2. Posts `WM_DV_TIMECHANGE` to the parent window if the timestamp
    changed.
-3. Calls `CMonitor::HandleFrame()` when the queue is below half
+3. Calls `AnalyzeDVFrame()` on the raw frame buffer and accumulates the
+   result with `AccumulateErrorStats()` into `m_errorStats` under
+   `CAutoLock(m_cs)`.
+4. Calls `CMonitor::HandleFrame()` when the queue is below half
    capacity (preview throttling).
-4. Creates a new `CAVIWriter` if none is open or if a split condition
+5. Creates a new `CAVIWriter` if none is open or if a split condition
    is met (frame count limit or DV timestamp discontinuity).
-5. Calls `CAVIWriter::HandleFrame()` for every `m_everyNth` frame.
-6. Updates `m_counter`, `m_time`, and checks the timed capture limit.
+6. Calls `CAVIWriter::HandleFrame()` for every `m_everyNth` frame.
+7. Updates `m_counter`, `m_time`, and checks the timed capture limit.
+
+Step 3 happens on every frame regardless of whether a `CAVIWriter` is
+open (i.e., even in `CapturePaused` state when no file is being written).
 
 **Disk space monitoring (v1.2.6):**
 Every ~1500 frames the thread checks free disk space via
@@ -210,6 +216,33 @@ A timeout without an EOS marker indicates the FireWire signal was lost.
 The thread posts `WM_DV_SIGNALLOST` (`WM_USER + 203`), transitions the
 state to `Finished`, and exits cleanly without requiring manual
 intervention.
+
+**Post-capture phase (v1.6.0):**
+After the main capture loop exits and `CAVIWriter` is deleted, the thread
+runs a post-capture sequence on the completed file:
+
+```text
+AnalyzeDVFrame() per frame  (in main loop, under m_cs)
+          |
+          v
+CheckAVIIntegrity()     — structural RIFF validation
+          |
+          v
+ComputeFileSHA256()     — if m_enableSHA256 is true
+WriteSHA256Sidecar()    — writes <file>.sha256
+          |
+          v
+WriteCaptureLog()       — appends row to WinDV_CaptureLog.csv
+          |
+          v
+PostMessage(WM_DV_CHECK_COMPLETE, bCheckPassed, 0)
+```
+
+The UI thread receives `WM_DV_CHECK_COMPLETE` (`WM_USER + 204`) and calls
+`CDVToolsDlg::OnDVCheckComplete()`, which reads `CDV::GetLastCheckResult()`
+and `CDV::GetErrorStats()` to compose the status bar summary.
+See [threading.md § Post-capture phase](threading.md) for the
+synchronization details.
 
 ### CAVIWriter
 

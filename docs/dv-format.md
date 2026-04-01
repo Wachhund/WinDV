@@ -16,6 +16,7 @@ in filename generation and automatic file splitting.
 5. [BCD decoding](#5-bcd-decoding)
 6. [Y2K pivot logic](#6-y2k-pivot-logic)
 7. [How GetDVRecordingTime() is used](#7-how-getdvrecordingtime-is-used)
+8. [STA error fields and error detection](#8-sta-error-fields-and-error-detection)
 
 ---
 
@@ -58,8 +59,29 @@ Each DIF sequence of 150 blocks is structured as follows:
 | 0 | Header | 1 |
 | 1–2 | Subcode (SSYB) | 2 |
 | 3–5 | VAUX (video auxiliary) | 3 |
-| 6–8 | Audio | 3 |
-| 9–134 | Video data | 126 |
+| 6–149 | Interleaved audio + video | 144 |
+
+Blocks 6 through 149 contain **interleaved** audio and video data.
+Audio blocks are not consecutive; they appear at every 16th position
+starting at index 6:
+
+```text
+Audio block indices: 6, 22, 38, 54, 70, 86, 102, 118, 134  (9 blocks)
+Video blocks fill the remaining 135 positions between them.
+```
+
+Each audio block is identified by its SCT field (byte 0, bits 7–5) equal
+to 3 (SCT_AUDIO = 011 binary).
+Each video block has SCT = 4 (SCT_VIDEO = 100 binary).
+
+Per-sequence totals:
+
+| Block type | Count per sequence |
+| --- | --- |
+| Audio | 9 |
+| Video | 135 |
+| Header + Subcode + VAUX | 6 |
+| **Total** | **150** |
 
 The subcode blocks at indices 1 and 2 each hold 6 sync packets, each
 8 bytes long (including a 3-byte sync-packet header), yielding 5 bytes
@@ -262,3 +284,79 @@ trigger splits.
 `"DD.MM.'YY HH:MM:SS"` using `strftime` and displays it in `m_status2`.
 This gives the user real-time feedback on the tape's original recording
 date and time as the tape plays.
+
+---
+
+## 8. STA error fields and error detection
+
+`DVError.cpp` / `DVError.h` extend WinDV's understanding of DV frames
+beyond timestamps.
+This section documents the relevant DIF block fields.
+
+### STA field in video DIF blocks
+
+Every video DIF block (SCT=4) carries a 4-bit STA (STAtus) field in the
+upper nibble of byte 3:
+
+```text
+Byte 3 of a video DIF block:
+  bits 7-4 : STA  (error concealment status)
+  bits 3-0 : (other data)
+```
+
+STA values per IEC 61834:
+
+| Value | Meaning |
+| --- | --- |
+| 0x0 | No error — data decoded normally |
+| 0x1 | Concealed by simple interpolation |
+| 0x2 | Concealed by copying from the previous frame |
+| 0x4 | Concealed by copying from the next frame |
+| 0xA | Concealed — unspecified method |
+| 0xC | Concealed — unspecified method |
+| 0xF | **Uncompensated error** (worst case — visible artifact) |
+
+Any STA value other than 0x0 indicates that the corresponding DCT block
+could not be decoded cleanly and had to be concealed.
+`AnalyzeDVFrame()` counts all non-zero STA values as video errors, and
+separately counts 0xF values as `dwVideoSTA_F` (uncompensated, critical).
+
+Maximum possible video error counts per frame (one error block = one STA
+field):
+
+| Standard | Sequences | Blocks/seq | Max video errors |
+| --- | --- | --- | --- |
+| NTSC | 10 | 135 | 1350 |
+| PAL | 12 | 135 | 1620 |
+
+### Audio error detection
+
+Audio DIF blocks (SCT=3) use a different mechanism.
+Byte 3 of an audio DIF block is the AAUX pack ID.
+Per the DVRescue/DVAnalyzer convention, a pack ID of `0xFF` indicates
+the audio data in that block could not be read from tape.
+
+Maximum possible audio error counts per frame:
+
+| Standard | Sequences | Audio blocks/seq | Max audio errors |
+| --- | --- | --- | --- |
+| NTSC | 10 | 9 | 90 |
+| PAL | 12 | 9 | 108 |
+
+### Even/Odd DIF sequence analysis
+
+DV camcorders record with two rotating video heads.
+Even-numbered DIF sequences (0, 2, 4, …) are recorded by one head;
+odd-numbered sequences (1, 3, 5, …) by the other.
+
+Comparing `dwVideoErrorsEven` and `dwVideoErrorsOdd` in `ErrorStats`
+(or `FrameErrorInfo`) can reveal one-sided head wear or head-switching
+problems:
+
+- **Balanced errors** (even ≈ odd) — dropout is random, likely due to
+  tape condition rather than a specific head.
+- **Imbalanced errors** (one side dominates) — one head may be dirty,
+  worn, or misaligned.
+
+This is the same head-wear diagnostic approach used by DVRescue and
+DVAnalyzer.

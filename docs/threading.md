@@ -177,8 +177,25 @@ timeout drives the auto-stop behaviour.
 | `CEvent m_evPut` | `CDVQueue` | Signals producer when a slot is freed |
 | `CEvent m_ev` | `CAVIJoiner` | Signals JoinerThread on EOS |
 | `CEvent m_ev` | `CMonitor` | Signals MonitoringThread on frame ready |
-| `CCritSec m_cs` | `CDV` | Protects `m_captureFilename` |
+| `CCritSec m_cs` | `CDV` | Protects `m_captureFilename` and `m_errorStats` |
 | `CAutoLock` | Both | RAII guard for CCritSec |
+
+`m_errorStats` (`CDV::m_errorStats`, `ErrorStats`) is updated by
+`CapturingThread` after every frame via `AccumulateErrorStats()` under a
+`CAutoLock` on `CDV::m_cs`.
+The UI timer reads it from the main thread via `CDV::GetErrorStats()`,
+which copies the struct under the same lock:
+
+```cpp
+ErrorStats CDV::GetErrorStats()
+{
+    CAutoLock lock(&m_cs);
+    return m_errorStats;
+}
+```
+
+This copy-under-lock pattern avoids partial reads of the multi-field
+struct without needing a reader/writer lock.
 
 `CEvent` in the DirectShow BaseClasses wraps a Win32 manual-reset event.
 `CSingleLock::Lock()` on a `CEvent` calls `WaitForSingleObject(INFINITE)`.
@@ -300,6 +317,43 @@ it posts `WM_DV_SIGNALLOST` (`WM_USER + 203`) to the parent window,
 sets the capture state to `Finished`, and exits.
 The default timeout is 5000 ms; setting `m_autoStopTimeout` to 0
 disables the feature and restores the original blocking behaviour.
+
+**Post-capture phase (v1.6.0):**
+After the last frame has been written and the `CAVIWriter` is deleted
+(which finalizes the AVI file), `CapturingThread` performs a sequence of
+post-capture operations on the completed file before posting to the UI.
+This phase runs entirely within `CapturingThread` — it does not require
+UI interaction:
+
+```text
+1. Copy m_errorStats under m_cs lock into capStats.errorStats.
+2. CheckAVIIntegrity(m_captureFilename)
+      — full RIFF structural validation (AVICheck.cpp).
+      — result stored in m_lastCheckResult.
+3. ComputeFileSHA256(m_captureFilename, capStats.szSHA256)  [if m_enableSHA256]
+      — streams the file in 64 KB blocks through sha256.c.
+      — WriteSHA256Sidecar() writes <filename>.sha256 next to the AVI.
+4. WriteCaptureLog(logPath, capStats)
+      — appends one CSV row to WinDV_CaptureLog.csv in the capture directory.
+5. PostMessage(WM_DV_CHECK_COMPLETE, bCheckPassed, 0)
+      — CDVToolsDlg::OnDVCheckComplete() reads m_lastCheckResult and
+        m_errorStats to build the status-bar summary.
+```
+
+Steps 2–4 are I/O-bound and may take several seconds for large files.
+They run on `CapturingThread`, not the UI thread, so the dialog remains
+responsive throughout.
+
+`WM_DV_CHECK_COMPLETE` is defined as `WM_USER + 204`.
+
+**SafeAttachConsole:**
+`SafeAttachConsole()` is declared in `StdAfx.h` as an inline function.
+It loads `AttachConsole()` at runtime via `GetProcAddress` from
+`kernel32.dll`, making the binary link on Windows 2000 (where
+`AttachConsole` is not available) while still supporting console
+attachment on XP and later.
+This follows the same XP-compatibility pattern used for other newer APIs
+such as the DPI-awareness functions in `WinDV.cpp`.
 
 ### Record mode (RecordingThread)
 

@@ -12,17 +12,26 @@ For a description of what the build produces and how it fits together, see
 ## Table of Contents
 
 1. [Prerequisites](#1-prerequisites)
-2. [Building from the Visual C++ 6.0 IDE](#2-building-from-the-visual-c-60-ide)
-3. [Command-line build (NMAKE)](#3-building-from-the-command-line-nmake)
-4. [SDK path adjustment](#4-sdk-path-adjustment)
-5. [Linked libraries and their purposes](#5-linked-libraries-and-their-purposes)
-6. [Compiler flags reference](#6-compiler-flags-reference)
-7. [Known issues with modern toolchains](#7-known-issues-with-modern-toolchains)
-8. [Proven build environment](#8-proven-build-environment)
+2. [Building with CMake (primary)](#2-building-with-cmake-primary)
+3. [Building from the Visual C++ 6.0 IDE](#3-building-from-the-visual-c-60-ide)
+4. [Command-line build (NMAKE)](#4-building-from-the-command-line-nmake)
+5. [SDK path adjustment](#5-sdk-path-adjustment)
+6. [Linked libraries and their purposes](#6-linked-libraries-and-their-purposes)
+7. [Compiler flags reference](#7-compiler-flags-reference)
+8. [Known issues with modern toolchains](#8-known-issues-with-modern-toolchains)
+9. [Proven build environment](#9-proven-build-environment)
 
 ---
 
 ## 1. Prerequisites
+
+> **Current version:** 1.6.0 (defined in `Version.h` and in
+> `CMakeLists.txt project(WinDV VERSION 1.6.0)`).
+> v1.6.0 adds `DVError.cpp/h` (DV error detection) and `sha256.c/h`
+> (post-capture SHA-256 checksums).
+> These files are included in both the CMake and VC6 builds without
+> requiring any manual configuration.
+
 
 ### Compiler
 
@@ -78,7 +87,77 @@ If your SDK is installed elsewhere, see
 
 ---
 
-## 2. Building from the Visual C++ 6.0 IDE
+## 2. Building with CMake (primary)
+
+CMake is the primary and recommended build system for new development.
+It targets MSVC 2017 or later and produces binaries for Windows 7 and
+above (Win7+).
+XP-compatible builds require the `v141_xp` toolset (Visual Studio 2017).
+
+### Prerequisites
+
+- **Visual Studio 2017 or 2022** with the C++ desktop workload.
+- CMake 3.16 or later.
+- For XP builds: VS 2017 with the optional **Windows XP support for C++**
+  component (`v141_xp` toolset).
+
+### Standard build (Win7+)
+
+```bat
+cd WinDV
+cmake -B build -G "Visual Studio 17 2022" -A Win32
+cmake --build build --config Release
+```
+
+Output: `build\Release\WinDV.exe`
+
+### XP-compatible build
+
+```bat
+cmake -B build -G "Visual Studio 15 2017" -A Win32 -T v141_xp
+cmake --build build --config Release
+```
+
+### Static MFC (no MFC DLL dependency)
+
+```bat
+cmake -B build -G "Visual Studio 17 2022" -A Win32 -DSTATIC_MFC=ON
+cmake --build build --config Release
+```
+
+### Notes on mixed C/C++ sources
+
+The CMake project file declares `LANGUAGES C CXX` to support `sha256.c`,
+which is a pure C file:
+
+```cmake
+project(WinDV VERSION 1.6.0 LANGUAGES C CXX)
+```
+
+`sha256.c` is compiled as C89 and is explicitly excluded from the
+precompiled header mechanism:
+
+```cmake
+set_source_files_properties(sha256.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+```
+
+All other `.cpp` files use `StdAfx.h` as the precompiled header.
+
+### DirectShow BaseClasses (vendored)
+
+The BaseClasses are vendored in the `baseclasses/` subdirectory and built
+automatically as a CMake sub-project via `add_subdirectory(baseclasses)`.
+No manual BaseClasses build step is needed when using CMake.
+
+---
+
+## 3. Building from the Visual C++ 6.0 IDE
+
+The VC6 project files (`WinDV.dsp` / `WinDV.dsw`) are retained for
+compatibility with VC6-based XP environments.
+They include `DVError.cpp` and `sha256.c` as source files.
+`sha256.c` has the `/Y-` flag (`# SUBTRACT CPP /YX /Yc /Yu`) to disable
+precompiled header processing for that file.
 
 1. Open `WinDV\WinDV.dsw` in the Visual C++ 6.0 IDE.
 2. Select **Build > Set Active Configuration** and choose one of:
@@ -99,7 +178,7 @@ configuration.
 
 ---
 
-## 3. Building from the command line (NMAKE)
+## 4. Building from the command line (NMAKE)
 
 NMAKE requires a makefile exported from the IDE.
 Export it once from **Project > Export Makefile**.
@@ -124,7 +203,7 @@ call "C:\Program Files\Microsoft Visual Studio\VC98\Bin\vcvars32.bat"
 
 ---
 
-## 4. SDK path adjustment
+## 5. SDK path adjustment
 
 If the Platform SDK or DirectShow BaseClasses are not installed at
 `C:\Program Files\Microsoft SDK\`, update the paths in one of two ways:
@@ -149,7 +228,7 @@ directory instead to pick up `strmbasd.lib`.
 
 ---
 
-## 5. Linked libraries and their purposes
+## 6. Linked libraries and their purposes
 
 | Library | Configuration | Purpose |
 | --- | --- | --- |
@@ -178,7 +257,7 @@ VC6 targeting Windows 98/NT uses this for `REFERENCE_TIME` (which is
 
 ---
 
-## 6. Compiler flags reference
+## 7. Compiler flags reference
 
 | Flag | Build | Meaning |
 | --- | --- | --- |
@@ -198,7 +277,7 @@ VC6 targeting Windows 98/NT uses this for `REFERENCE_TIME` (which is
 
 ---
 
-## 7. Known issues with modern toolchains
+## 8. Known issues with modern toolchains
 
 ### Visual Studio 2005 and later
 
@@ -246,10 +325,12 @@ This is a driver-level issue unrelated to the build.
 
 ---
 
-## 8. Proven build environment
+## 9. Proven build environment
 
-The configuration below has been verified to produce a working
-`WinDV.exe` (Release and Debug) with all features through v1.2.7.
+The VC6 configuration below has been verified to produce a working
+`WinDV.exe` (Release and Debug) with all features through v1.6.0.
+For CMake builds with MSVC 2017 or 2022, no special environment is needed
+beyond the standard Visual Studio C++ desktop workload.
 
 | Component | Version / Source |
 | --- | --- |

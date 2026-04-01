@@ -20,6 +20,7 @@ the `CDV` orchestrator.
 5. [Status display and timer updates](#5-status-display-and-timer-updates)
 6. [Configuration dialogs](#6-configuration-dialogs)
 7. [Supporting controls](#7-supporting-controls)
+8. [Command-line interface](#8-command-line-interface)
 
 ---
 
@@ -260,7 +261,18 @@ pipeline has reached `CDV::Finished`, `OnClose()` is called immediately.
 | `m_status` (IDC_STATUS) | Pipeline state; appends dropped-frame count |
 | `m_status2` (IDC_STATUS2) | DV timestamp as `DD.MM.'YY HH:MM:SS` |
 | `m_counter` (IDC_COUNTER) | Elapsed time as `H:MM:SS.t` |
-| `m_status3` (IDC_STATUS3) | Queue fill level as `Q:N` |
+| `m_status3` (IDC_STATUS3) | Queue fill level; during capture also shows DV error count and percentage |
+
+During active capture (`CDV::Capturing`), `m_status3` shows the queue
+load together with the current DV error statistics:
+
+```text
+Q:N E:N/X.X%
+```
+
+where `N` (first) is the queue slot count, `N` (second) is the number of
+frames with at least one video error, and `X.X%` is the error rate.
+The error portion is omitted when no errors have been detected yet.
 
 The elapsed time conversion:
 
@@ -289,6 +301,7 @@ All are declared in `DShow.h` and routed via `ON_MESSAGE` entries in
 | `WM_DV_TIMECHANGE` | `+201` | Capturing | `OnDVTimeChange` |
 | `WM_DV_LOWDISKSPACE` | `+202` | Capturing | `OnDVLowDiskSpace` |
 | `WM_DV_SIGNALLOST` | `+203` | Capturing | `OnDVSignalLost` |
+| `WM_DV_CHECK_COMPLETE` | `+204` | Capturing (post-capture) | `OnDVCheckComplete` |
 
 #### `OnDVTimeChange()` (existing)
 
@@ -327,6 +340,26 @@ The thread has already set the pipeline state to `Finished` before
 posting the message, so no additional stop call is required from the
 dialog.
 
+#### `OnDVCheckComplete()` (v1.6.0)
+
+Posted by `CapturingThread` after the post-capture phase (AVI integrity
+check + SHA-256 + CSV log) completes.
+`wParam` is non-zero if the AVI check passed, zero if problems were found.
+
+The handler reads `CDV::GetLastCheckResult()` and `CDV::GetErrorStats()`
+to build an extended status bar message:
+
+```text
+AVI OK: N frames, PAL | DV: error-free
+AVI OK: N frames, NTSC | DV errors: M frames (X.X%), worst: #F (N STA),
+    audio: A frames [C CRITICAL]
+AVI problem: <reason> | DV errors: ...
+```
+
+If the AVI check failed, `MessageBeep(MB_ICONWARNING)` is called.
+The full check result is available via `CDV::GetLastCheckResult()` for
+programmatic access (e.g., from the CLI `check` command).
+
 ---
 
 ## 6. Configuration dialogs
@@ -344,6 +377,11 @@ Exposes:
 - Frame decimation factor (`EveryNth`)
 - Date/time format string (with history combo)
 - Sequence digit count
+- Auto-stop on signal loss (`IDC_CHK_AUTOSTOP`, timeout in seconds)
+- **SHA-256 checksum** (`IDC_CHK_SHA256`) — when checked, a
+  `sha256sum`-compatible sidecar file (`.sha256`) is written next to each
+  captured AVI file after the post-capture phase completes.
+  Controls `CDV::m_enableSHA256`.
 
 ### CRecordCfg
 
@@ -394,3 +432,60 @@ For `IDC_FDST` (Capture destination):
 A simple `CDialog` subclass that shows a list box populated with device
 friendly names returned by `GetVideoSrcList()` or `GetVideoDstList()`.
 Returns the selected index via `GetSelection()`.
+
+---
+
+## 8. Command-line interface
+
+WinDV parses the command line in `CDVToolsDlg::OnInitDialog()` via
+`__argc` / `__argv` (except `--version`, which is handled earlier in
+`CWinDVApp::InitInstance()`).
+
+The full command set:
+
+```text
+WinDV --version                         print version string and exit
+WinDV capture [-exit] <secs> <file>     timed capture from FireWire
+WinDV record  [-exit] <files...>        record AVI file(s) to DV tape
+WinDV check   [-v] <file.avi> [...]     AVI integrity check
+WinDV hash    [-q] <file> [...]         compute SHA-256 and write sidecar
+WinDV verify  <file> [...]              verify file against .sha256 sidecar
+```
+
+### hash command (v1.6.0)
+
+```text
+WinDV hash [-q] <file> [file2 ...]
+```
+
+For each file, `ComputeFileSHA256()` hashes the file and prints
+`<hash>  <filename>` to stdout in `sha256sum` format.
+Unless `-q` (quiet) is given, a `.sha256` sidecar file is written next
+to each input file.
+
+Exit code: 0 if all files were hashed successfully, non-zero if any
+file could not be read.
+
+### verify command (v1.6.0)
+
+```text
+WinDV verify <file> [file2 ...]
+```
+
+For each file, `VerifyFileSHA256()` reads the `.sha256` sidecar, hashes
+the file, and compares the results.
+Prints `OK` or `FAILED` per file.
+
+Return codes per file (accumulated into the process exit code):
+
+| Code | Meaning |
+| --- | --- |
+| 0 | Hash matches |
+| 1 | Hash mismatch |
+| 2 | Sidecar not found or unreadable |
+
+Console output for all CLI commands uses `GetStdHandle(STD_OUTPUT_HANDLE)`
+first (works when stdout is redirected to a pipe or file), then falls back
+to `SafeAttachConsole()` for interactive use.
+`AllocConsole()` is never used, as it would replace inherited standard
+handles.
