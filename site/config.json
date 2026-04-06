@@ -4,7 +4,7 @@
     "author": "Wachhund/WinDV",
     "image": "",
 
-    "docs_directory": "docs",
+    "docs_directory": "site/docs",
     "cache": false,
     "format": "html",
     "language": "en",

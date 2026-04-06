@@ -31,7 +31,7 @@ jobs:
         run: composer create-project daux/daux.io daux-tool --no-dev --prefer-dist
 
       - name: Generate site
-        run: php daux-tool/bin/daux generate -c site/config.json -s site/docs --destination _site
+        run: php daux-tool/bin/daux generate -c site/config.json --destination _site
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
