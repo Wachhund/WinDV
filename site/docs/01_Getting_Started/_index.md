@@ -1,0 +1,1 @@
+This section covers how to set up a build environment and compile WinDV from source. Whether you use the modern CMake build system or the legacy VC++ 6.0 project files, you will find step-by-step instructions here.

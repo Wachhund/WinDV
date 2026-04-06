@@ -1,0 +1,39 @@
+{
+    "title": "WinDV",
+    "tagline": "DV Capture & Recording for Windows",
+    "author": "Wachhund/WinDV",
+    "image": "",
+
+    "docs_directory": "docs",
+    "cache": false,
+    "format": "html",
+    "language": "en",
+
+    "html": {
+        "theme": "daux-blue",
+        "breadcrumbs": true,
+        "breadcrumb_separator": "Chevrons",
+        "toggle_code": true,
+        "date_modified": true,
+        "auto_landing": true,
+        "search": true,
+        "auto_toc": false,
+        "inherit_index": false,
+        "jump_buttons": true,
+        "repo": "Wachhund/WinDV",
+        "edit_on_github": "Wachhund/WinDV/blob/main/site/docs",
+        "links": {
+            "GitHub": "https://github.com/Wachhund/WinDV",
+            "Releases": "https://github.com/Wachhund/WinDV/releases"
+        },
+        "twitter": [],
+        "google_analytics": false
+    },
+
+    "strings": {
+        "en": {
+            "CodeBlocks_show": "Show Code",
+            "Search_placeholder": "Search docs..."
+        }
+    }
+}
