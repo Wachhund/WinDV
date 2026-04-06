@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <title>USB DV Capture - WinDV</title>
+    <meta name="description" content="DV Capture & Recording for Windows">
+    <meta name="author" content="Wachhund/WinDV">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link rel="icon" href="../themes/daux/img/favicon-blue.png" type="image/x-icon">
+
+    <!-- Mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- JS -->
+    <script>
+        window.base_url = "../";
+        document.documentElement.classList.remove('no-js');
+    </script>
+
+    <!-- Font -->
+    
+    <!-- CSS -->
+            <link href='../themes/daux/css/theme-blue.min.css' rel='stylesheet' type='text/css'>
+            <link href='../daux_libraries/search.css' rel='stylesheet' type='text/css'>
+    </head>
+<body class="">
+    <div class="Columns content">
+    <aside class="Columns__left Collapsible">
+        <button type="button" class="Button Collapsible__trigger" aria-controls="sidebar_content" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+        </button>
+
+        <a class="Brand" href="../index.html">WinDV</a>
+
+    <form role='search' action="/" method="get" class="Search" id="search_form">
+        <label for="search_input">
+            <span class='u-visuallyHidden'>Search</span>
+        </label>
+        <input
+            type="search"
+            id="search_input"
+            class="Search__field"
+            placeholder="Search docs..."
+            aria-label="Search docs..."
+            autocomplete="on"
+            results=25
+            autosave=text_search
+        >
+        <label>
+            <input type="submit" class='u-visuallyHidden' />
+            <span class='u-visuallyHidden'>Search docs...</span>
+            <svg class="Search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 451 451">
+                <path d="M447.05 428l-109.6-109.6c29.4-33.8 47.2-77.9 47.2-126.1C384.65 86.2 298.35 0 192.35 0 86.25 0 .05 86.3.05 192.3s86.3 192.3 192.3 192.3c48.2 0 92.3-17.8 126.1-47.2L428.05 447c2.6 2.6 6.1 4 9.5 4s6.9-1.3 9.5-4c5.2-5.2 5.2-13.8 0-19zM26.95 192.3c0-91.2 74.2-165.3 165.3-165.3 91.2 0 165.3 74.2 165.3 165.3s-74.1 165.4-165.3 165.4c-91.1 0-165.3-74.2-165.3-165.4z"/>
+            </svg>
+        </label>
+    </form>
+
+        <div class="Collapsible__content" id="sidebar_content">
+            <!-- Navigation -->
+            <ul class='Nav'>
+<li class='Nav__item  has-children'><a href="../Getting_Started/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Getting Started</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Getting_Started/Building.html">Building</a></li>
+<li class='Nav__item '><a href="../Getting_Started/Prerequisites.html">Prerequisites</a></li></ul></li>
+<li class='Nav__item  has-children'><a href="../Architecture/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Architecture</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Architecture/DirectShow_Pipeline.html">DirectShow Pipeline</a></li>
+<li class='Nav__item '><a href="../Architecture/DV_Error_Detection.html">DV Error Detection</a></li>
+<li class='Nav__item '><a href="../Architecture/SHA_256_Checksums.html">SHA-256 Checksums</a></li>
+<li class='Nav__item '><a href="../Architecture/Threading_Model.html">Threading Model</a></li></ul></li>
+<li class='Nav__item '><a href="../DV_Format/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>DV Format</a><ul class='Nav'></ul></li>
+<li class='Nav__item Nav__item--open has-children'><a href="../User_Guide/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>User Guide</a><ul class='Nav'>
+<li class='Nav__item '><a href="../User_Guide/Capture_and_Record.html">Capture and Record</a></li>
+<li class='Nav__item '><a href="../User_Guide/Command_Line.html">Command Line</a></li>
+<li class='Nav__item '><a href="../User_Guide/Settings.html">Settings</a></li>
+<li class='Nav__item Nav__item--active'><a href="../User_Guide/USB_DV_Capture.html">USB DV Capture</a></li></ul></li>
+<li class='Nav__item  has-children'><a href="../Development/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Development</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Development/Coding_Standards.html">Coding Standards</a></li></ul></li></ul>
+            <div class="Links">
+                                    <hr/>
+                                            <a href="https://github.com/Wachhund/WinDV" target="_blank"  rel="noopener noreferrer">GitHub</a>
+                        <br />
+                                            <a href="https://github.com/Wachhund/WinDV/releases" target="_blank"  rel="noopener noreferrer">Releases</a>
+                        <br />
+                                                </div>
+
+                            <div class="CodeToggler">
+                    <hr/>
+                    <label class="Checkbox">Show Code                        <input type="checkbox" class="CodeToggler__button--main" checked="checked"/>
+                        <div class="Checkbox__indicator"></div>
+                    </label>
+                </div>
+            
+            <div class="DarkModeToggler">
+                <hr/>
+                <label class="Checkbox">Dark Mode                    <input type="checkbox" class="ColorMode__button" />
+                    <div class="Checkbox__indicator"></div>
+                </label>
+            </div>
+
+                
+                        </div>
+    </aside>
+    <div class="Columns__right">
+        <div class="Columns__right__content">
+            <div class="doc_content">
+                <article class="Page">
+
+    <div class="Page__header">
+        <h1><a href="../User_Guide/index.html">User Guide</a> <svg class="Page__header--separator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 477.175 477.175"><path d="M360.73 229.075l-225.1-225.1c-5.3-5.3-13.8-5.3-19.1 0s-5.3 13.8 0 19.1l215.5 215.5-215.5 215.5c-5.3 5.3-5.3 13.8 0 19.1 2.6 2.6 6.1 4 9.5 4 3.4 0 6.9-1.3 9.5-4l225.1-225.1c5.3-5.2 5.3-13.8.1-19z"/></svg> <a href="../User_Guide/USB_DV_Capture.html">USB DV Capture</a></h1>
+                <span class="ModifiedDate">
+            April 5, 2026 at 5:31 PM        </span>
+                        <span class="EditOn">
+            <a href="https://github.com/Wachhund/WinDV/blob/main/site/docs/04_User_Guide\USB_DV_Capture.md" target="_blank">
+                Edit on GitHub            </a>
+        </span>
+            </div>
+
+    <div class="s-content">
+        <h1><a id="usb-dv-capture" href="#usb-dv-capture" class="Permalink" aria-hidden="true" title="Permalink">#</a>USB DV Capture</h1>
+<p>WinDV was originally designed for FireWire (IEEE 1394) DV
+devices. However, a small number of camcorders support
+full-resolution DV streaming over USB. This document covers
+USB DV compatibility and known working configurations.</p>
+<hr />
+<h2><a id="background" href="#background" class="Permalink" aria-hidden="true" title="Permalink">#</a>Background</h2>
+<p>Most MiniDV camcorders use USB only for:</p>
+<ul>
+<li>Transferring still photos from a memory card</li>
+<li>Low-resolution “webcam” mode</li>
+</ul>
+<p>These modes do <strong>not</strong> deliver raw DV data and are <strong>not</strong>
+compatible with WinDV.</p>
+<p>A few camcorder models, primarily from Panasonic, support
+streaming full-resolution DV data over USB 2.0. When
+connected in this mode, the camera appears as a DirectShow
+capture device exposing <code>MEDIATYPE_Interleaved</code> – the same
+media type used by FireWire DV devices. WinDV’s device
+filter recognizes these devices and lists them in the
+device selection dialog.</p>
+<hr />
+<h2><a id="enabling-usb-dv-streaming" href="#enabling-usb-dv-streaming" class="Permalink" aria-hidden="true" title="Permalink">#</a>Enabling USB DV Streaming</h2>
+<p>On supported Panasonic camcorders, USB DV streaming must
+be enabled in the camera menu:</p>
+<ol>
+<li>Set the camera to <strong>VCR/Playback</strong> mode</li>
+<li>Open the menu and navigate to <strong>USB FUNCTION</strong></li>
+<li>Set it to <strong>Motion DV</strong> (not “WEB CAMERA” or “PictBridge”)</li>
+<li>Connect the camera via USB to the PC</li>
+<li>Start WinDV and select the device</li>
+</ol>
+<p>The setting name “Motion DV” refers to Panasonic’s
+MotionDV Studio software, which was originally required
+for USB capture. On modern Windows (7/10/11), the camera
+is recognized without Panasonic’s proprietary drivers.</p>
+<hr />
+<h2><a id="known-compatible-models" href="#known-compatible-models" class="Permalink" aria-hidden="true" title="Permalink">#</a>Known Compatible Models</h2>
+<h3><a id="panasonic-confirmed-usb-dv-streaming" href="#panasonic-confirmed-usb-dv-streaming" class="Permalink" aria-hidden="true" title="Permalink">#</a>Panasonic (confirmed USB DV streaming)</h3>
+<p>These models have been reported to deliver full-resolution
+DV over USB 2.0. The NV prefix is for PAL models, PV is
+for the equivalent NTSC models.</p>
+<table>
+<thead>
+<tr>
+<th>PAL Model</th>
+<th>NTSC Model</th>
+<th>USB DV</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NV-GS400</td>
+<td>PV-GS400</td>
+<td>Yes</td>
+<td>Tested on Win 7/10/11</td>
+</tr>
+<tr>
+<td>NV-GS500</td>
+<td>PV-GS500</td>
+<td>Yes</td>
+<td>Tested on Win 7/10/11</td>
+</tr>
+<tr>
+<td>NV-GS300</td>
+<td>PV-GS300</td>
+<td>Likely</td>
+<td>Higher-end model</td>
+</tr>
+<tr>
+<td>NV-GS320</td>
+<td>PV-GS320</td>
+<td>Likely</td>
+<td>Higher-end model</td>
+</tr>
+<tr>
+<td>NV-GS330</td>
+<td>PV-GS330</td>
+<td>Likely</td>
+<td>Higher-end model</td>
+</tr>
+</tbody>
+</table>
+<h3><a id="panasonic-usb-for-photos-webcam-only" href="#panasonic-usb-for-photos-webcam-only" class="Permalink" aria-hidden="true" title="Permalink">#</a>Panasonic (USB for photos/webcam only)</h3>
+<p>These models have USB ports but are <strong>not</strong> known to
+support full-resolution DV streaming over USB. Use
+FireWire (DV port) for tape capture.</p>
+<table>
+<thead>
+<tr>
+<th>PAL Model</th>
+<th>NTSC Model</th>
+<th>USB DV</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NV-GS25</td>
+<td>–</td>
+<td>No</td>
+<td>USB = photos/webcam only</td>
+</tr>
+<tr>
+<td>NV-GS35</td>
+<td>PV-GS35</td>
+<td>No</td>
+<td>USB = photos/webcam only</td>
+</tr>
+<tr>
+<td>NV-GS75</td>
+<td>PV-GS75</td>
+<td>No</td>
+<td>USB = photos/webcam only</td>
+</tr>
+<tr>
+<td>NV-GS150</td>
+<td>PV-GS150</td>
+<td>No</td>
+<td>USB = photos/webcam only</td>
+</tr>
+<tr>
+<td>NV-GS180</td>
+<td>PV-GS180</td>
+<td>Unclear</td>
+<td>Check menu for “Motion DV”</td>
+</tr>
+<tr>
+<td>NV-GS230</td>
+<td>PV-GS230</td>
+<td>Unclear</td>
+<td>Check menu for “Motion DV”</td>
+</tr>
+<tr>
+<td>NV-GS250</td>
+<td>PV-GS250</td>
+<td>Unclear</td>
+<td>Check menu for “Motion DV”</td>
+</tr>
+</tbody>
+</table>
+<h3><a id="canon-confirmed-usb-dv-streaming" href="#canon-confirmed-usb-dv-streaming" class="Permalink" aria-hidden="true" title="Permalink">#</a>Canon (confirmed USB DV streaming)</h3>
+<p>A few Canon models also support DV over USB. The camera
+menu setting is <code>VCR SETUP &gt; AV-DV &gt; OFF</code>.</p>
+<ul>
+<li>Canon Optura 60</li>
+<li>Canon Optura 500</li>
+<li>Canon Optura 600</li>
+</ul>
+<h3><a id="sony-no-usb-dv-streaming" href="#sony-no-usb-dv-streaming" class="Permalink" aria-hidden="true" title="Permalink">#</a>Sony (no USB DV streaming)</h3>
+<p>Most Sony camcorders do <strong>not</strong> support DV streaming over
+USB. However, a few models are known exceptions.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>USB DV</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DCR-PC1000 / DCR-PC1000E</td>
+<td>Yes</td>
+<td>Tested with WinDV 1.2.4</td>
+</tr>
+</tbody>
+</table>
+<p>Most other Sony camcorders support USB streaming but
+<strong>not</strong> raw DV quality – they deliver compressed video
+instead. Use FireWire (i.LINK) for DV tape capture on
+those models.</p>
+<p>If you have a Sony camcorder that works with WinDV over
+USB, please report it so this list can be updated.</p>
+<hr />
+<h2><a id="how-to-check-if-your-camera-supports-usb-dv" href="#how-to-check-if-your-camera-supports-usb-dv" class="Permalink" aria-hidden="true" title="Permalink">#</a>How to Check if Your Camera Supports USB DV</h2>
+<ol>
+<li>Look in the camera menu for a <strong>“DV Streaming”</strong> or
+<strong>“Motion DV”</strong> USB function setting</li>
+<li>If the menu only shows “WEB CAMERA” or “PictBridge”,
+USB DV is not supported</li>
+<li>When connected via USB in the correct mode, the device
+should appear in Windows Device Manager as
+<strong>“Panasonic DVC DV Stream Device”</strong> or similar</li>
+</ol>
+<hr />
+<h2><a id="technical-details" href="#technical-details" class="Permalink" aria-hidden="true" title="Permalink">#</a>Technical Details</h2>
+<p>When a camcorder streams DV over USB, it registers as a
+DirectShow video capture device under
+<code>CLSID_VideoInputDeviceCategory</code>. The device exposes output
+pins with <code>MEDIATYPE_Interleaved</code> – the same media type
+used by FireWire DV devices.</p>
+<p>WinDV’s device enumeration filter (in <code>EnumVideoDevices()</code>,
+DShow.cpp) checks for <code>MEDIATYPE_Interleaved</code> on output
+pins. USB DV devices that expose this media type are
+automatically listed in the device selection dialog
+alongside FireWire devices. No code changes are needed.</p>
+<p>If a USB DV device uses <code>MEDIATYPE_Video</code> with a DV
+subtype (<code>MEDIASUBTYPE_dvsd</code>, <code>MEDIASUBTYPE_dvhd</code>, or
+<code>MEDIASUBTYPE_dvsl</code>) instead of <code>MEDIATYPE_Interleaved</code>,
+it will not appear in the device list. Please report
+such devices so the filter can be extended.</p>
+<hr />
+<h2><a id="troubleshooting" href="#troubleshooting" class="Permalink" aria-hidden="true" title="Permalink">#</a>Troubleshooting</h2>
+<p><strong>Device not listed in WinDV:</strong></p>
+<ul>
+<li>Verify the camera is in VCR/Playback mode (not Record)</li>
+<li>Check that the USB function is set to “Motion DV”</li>
+<li>Try disconnecting and reconnecting the USB cable</li>
+<li>Some cameras must be powered on <em>before</em> connecting USB</li>
+</ul>
+<p><strong>Panasonic GS400 detection issue:</strong></p>
+<p>The GS400 may not be detected if it is connected via USB
+and then powered on. Workaround: power on the camera
+first, then connect the USB cable.</p>
+<p><strong>Low resolution or no video:</strong></p>
+<p>If you see low-resolution video, the camera is in webcam
+mode, not DV streaming mode. Change the USB function
+setting in the camera menu.</p>
+<hr />
+<h2><a id="references" href="#references" class="Permalink" aria-hidden="true" title="Permalink">#</a>References</h2>
+<ul>
+<li><a href="https://dvmp.co.uk/dv-capture-over-usb.htm" class="Link--external" rel="noopener noreferrer">dvmp.co.uk – DV Capture over USB</a>
+(comprehensive testing of USB DV on Windows 7/10/11)</li>
+<li>Panasonic USB Driver Update:
+<code>https://av.jpn.support.panasonic.com/support/global/cs/e_cam/download/downdvc_usb.html</code></li>
+</ul>
+    </div>
+
+        <nav>
+        <ul class="Pager">
+            <li class=Pager--prev><a href="../User_Guide/Settings.html">Previous</a></li>            <li class=Pager--next><a href="../Development/index.html">Next</a></li>        </ul>
+    </nav>
+    </article>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    <!-- JS -->
+            <script src="../themes/daux/js/main.js"></script>
+    
+        <script>
+        
+        window.searchLanguage = "";
+        window.searchTranslation = {"Search_one_result":"1 result","Search_results":"!count results","Search_no_results":"Nothing found","Search_common_words_ignored":"Common words are largely ignored","Search_too_short":"Search too short","Search_one_character_or_more":"Should be one character or more","Search_should_be_x_or_more":"Should be !min characters or more","Link_previous":"Previous","Link_next":"Next"};
+    </script>
+
+    <!-- Search -->
+    <script type="text/javascript" src="../daux_libraries/search.min.js"></script>
+
+    <script>
+        window.search({'base_url': '../'})
+    </script>
+</body>
+</html>

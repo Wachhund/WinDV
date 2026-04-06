@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <title>Command Line - WinDV</title>
+    <meta name="description" content="DV Capture & Recording for Windows">
+    <meta name="author" content="Wachhund/WinDV">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link rel="icon" href="../themes/daux/img/favicon-blue.png" type="image/x-icon">
+
+    <!-- Mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- JS -->
+    <script>
+        window.base_url = "../";
+        document.documentElement.classList.remove('no-js');
+    </script>
+
+    <!-- Font -->
+    
+    <!-- CSS -->
+            <link href='../themes/daux/css/theme-blue.min.css' rel='stylesheet' type='text/css'>
+            <link href='../daux_libraries/search.css' rel='stylesheet' type='text/css'>
+    </head>
+<body class="">
+    <div class="Columns content">
+    <aside class="Columns__left Collapsible">
+        <button type="button" class="Button Collapsible__trigger" aria-controls="sidebar_content" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+        </button>
+
+        <a class="Brand" href="../index.html">WinDV</a>
+
+    <form role='search' action="/" method="get" class="Search" id="search_form">
+        <label for="search_input">
+            <span class='u-visuallyHidden'>Search</span>
+        </label>
+        <input
+            type="search"
+            id="search_input"
+            class="Search__field"
+            placeholder="Search docs..."
+            aria-label="Search docs..."
+            autocomplete="on"
+            results=25
+            autosave=text_search
+        >
+        <label>
+            <input type="submit" class='u-visuallyHidden' />
+            <span class='u-visuallyHidden'>Search docs...</span>
+            <svg class="Search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 451 451">
+                <path d="M447.05 428l-109.6-109.6c29.4-33.8 47.2-77.9 47.2-126.1C384.65 86.2 298.35 0 192.35 0 86.25 0 .05 86.3.05 192.3s86.3 192.3 192.3 192.3c48.2 0 92.3-17.8 126.1-47.2L428.05 447c2.6 2.6 6.1 4 9.5 4s6.9-1.3 9.5-4c5.2-5.2 5.2-13.8 0-19zM26.95 192.3c0-91.2 74.2-165.3 165.3-165.3 91.2 0 165.3 74.2 165.3 165.3s-74.1 165.4-165.3 165.4c-91.1 0-165.3-74.2-165.3-165.4z"/>
+            </svg>
+        </label>
+    </form>
+
+        <div class="Collapsible__content" id="sidebar_content">
+            <!-- Navigation -->
+            <ul class='Nav'>
+<li class='Nav__item  has-children'><a href="../Getting_Started/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Getting Started</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Getting_Started/Building.html">Building</a></li>
+<li class='Nav__item '><a href="../Getting_Started/Prerequisites.html">Prerequisites</a></li></ul></li>
+<li class='Nav__item  has-children'><a href="../Architecture/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Architecture</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Architecture/DirectShow_Pipeline.html">DirectShow Pipeline</a></li>
+<li class='Nav__item '><a href="../Architecture/DV_Error_Detection.html">DV Error Detection</a></li>
+<li class='Nav__item '><a href="../Architecture/SHA_256_Checksums.html">SHA-256 Checksums</a></li>
+<li class='Nav__item '><a href="../Architecture/Threading_Model.html">Threading Model</a></li></ul></li>
+<li class='Nav__item '><a href="../DV_Format/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>DV Format</a><ul class='Nav'></ul></li>
+<li class='Nav__item Nav__item--open has-children'><a href="../User_Guide/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>User Guide</a><ul class='Nav'>
+<li class='Nav__item '><a href="../User_Guide/Capture_and_Record.html">Capture and Record</a></li>
+<li class='Nav__item Nav__item--active'><a href="../User_Guide/Command_Line.html">Command Line</a></li>
+<li class='Nav__item '><a href="../User_Guide/Settings.html">Settings</a></li>
+<li class='Nav__item '><a href="../User_Guide/USB_DV_Capture.html">USB DV Capture</a></li></ul></li>
+<li class='Nav__item  has-children'><a href="../Development/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Development</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Development/Coding_Standards.html">Coding Standards</a></li></ul></li></ul>
+            <div class="Links">
+                                    <hr/>
+                                            <a href="https://github.com/Wachhund/WinDV" target="_blank"  rel="noopener noreferrer">GitHub</a>
+                        <br />
+                                            <a href="https://github.com/Wachhund/WinDV/releases" target="_blank"  rel="noopener noreferrer">Releases</a>
+                        <br />
+                                                </div>
+
+                            <div class="CodeToggler">
+                    <hr/>
+                    <label class="Checkbox">Show Code                        <input type="checkbox" class="CodeToggler__button--main" checked="checked"/>
+                        <div class="Checkbox__indicator"></div>
+                    </label>
+                </div>
+            
+            <div class="DarkModeToggler">
+                <hr/>
+                <label class="Checkbox">Dark Mode                    <input type="checkbox" class="ColorMode__button" />
+                    <div class="Checkbox__indicator"></div>
+                </label>
+            </div>
+
+                
+                        </div>
+    </aside>
+    <div class="Columns__right">
+        <div class="Columns__right__content">
+            <div class="doc_content">
+                <article class="Page">
+
+    <div class="Page__header">
+        <h1><a href="../User_Guide/index.html">User Guide</a> <svg class="Page__header--separator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 477.175 477.175"><path d="M360.73 229.075l-225.1-225.1c-5.3-5.3-13.8-5.3-19.1 0s-5.3 13.8 0 19.1l215.5 215.5-215.5 215.5c-5.3 5.3-5.3 13.8 0 19.1 2.6 2.6 6.1 4 9.5 4 3.4 0 6.9-1.3 9.5-4l225.1-225.1c5.3-5.2 5.3-13.8.1-19z"/></svg> <a href="../User_Guide/Command_Line.html">Command Line</a></h1>
+                <span class="ModifiedDate">
+            April 5, 2026 at 5:30 PM        </span>
+                        <span class="EditOn">
+            <a href="https://github.com/Wachhund/WinDV/blob/main/site/docs/04_User_Guide\Command_Line.md" target="_blank">
+                Edit on GitHub            </a>
+        </span>
+            </div>
+
+    <div class="s-content">
+        <h1><a id="command-line-interface" href="#command-line-interface" class="Permalink" aria-hidden="true" title="Permalink">#</a>Command-Line Interface</h1>
+<p>WinDV parses the command line in <code>CDVToolsDlg::OnInitDialog()</code> via
+<code>__argc</code> / <code>__argv</code> (except <code>--version</code>, which is handled earlier in
+<code>CWinDVApp::InitInstance()</code>).</p>
+<hr />
+<h2><a id="command-reference" href="#command-reference" class="Permalink" aria-hidden="true" title="Permalink">#</a>Command Reference</h2>
+<pre><code class="language-text">WinDV --version                         print version string and exit
+WinDV capture [-exit] &lt;secs&gt; &lt;file&gt;     timed capture from FireWire
+WinDV record  [-exit] &lt;files...&gt;        record AVI file(s) to DV tape
+WinDV check   [-v] &lt;file.avi&gt; [...]     AVI integrity check
+WinDV hash    [-q] &lt;file&gt; [...]         compute SHA-256 and write sidecar
+WinDV verify  &lt;file&gt; [...]              verify file against .sha256 sidecar
+</code></pre>
+<hr />
+<h2><a id="version" href="#version" class="Permalink" aria-hidden="true" title="Permalink">#</a>–version</h2>
+<p>Prints the version string (from <code>Version.h</code>) to stdout and exits
+immediately. Handled in <code>CWinDVApp::InitInstance()</code> before the dialog
+is created.</p>
+<hr />
+<h2><a id="capture" href="#capture" class="Permalink" aria-hidden="true" title="Permalink">#</a>capture</h2>
+<pre><code class="language-text">WinDV capture [-exit] &lt;secs&gt; &lt;file&gt;
+</code></pre>
+<p>Starts a timed capture from the default FireWire DV device.</p>
+<ul>
+<li><code>&lt;secs&gt;</code> – capture duration in seconds.</li>
+<li><code>&lt;file&gt;</code> – base path for the output AVI file.</li>
+<li><code>-exit</code> – exit the application when capture completes (useful for
+scripted/batch capture).</li>
+</ul>
+<p>The capture uses all current settings (AVI type, split thresholds, etc.)
+from the registry or INI file.</p>
+<hr />
+<h2><a id="record" href="#record" class="Permalink" aria-hidden="true" title="Permalink">#</a>record</h2>
+<pre><code class="language-text">WinDV record [-exit] &lt;files...&gt;
+</code></pre>
+<p>Records the specified AVI file(s) to the default FireWire DV device.
+Multiple files are played in the order given.</p>
+<ul>
+<li><code>-exit</code> – exit the application when recording completes.</li>
+</ul>
+<hr />
+<h2><a id="check" href="#check" class="Permalink" aria-hidden="true" title="Permalink">#</a>check</h2>
+<pre><code class="language-text">WinDV check [-v] &lt;file.avi&gt; [file2.avi ...]
+</code></pre>
+<p>Performs an AVI integrity check on one or more files. The checker validates
+RIFF-AVI structure: hdrl, movi, idx1/indx, and DV frame sizes
+(120,000 bytes for NTSC, 144,000 bytes for PAL).</p>
+<ul>
+<li><code>-v</code> – verbose output (print details for each check).</li>
+</ul>
+<p>The checker reads only chunk headers and the index, not frame data,
+making it fast even for large files.</p>
+<p>Exit code: 0 if all files pass, non-zero if any problems are found.</p>
+<hr />
+<h2><a id="hash-v1-6-0" href="#hash-v1-6-0" class="Permalink" aria-hidden="true" title="Permalink">#</a>hash (v1.6.0)</h2>
+<pre><code class="language-text">WinDV hash [-q] &lt;file&gt; [file2 ...]
+</code></pre>
+<p>For each file, computes the SHA-256 hash and prints the result to stdout
+in <code>sha256sum</code> format:</p>
+<pre><code class="language-text">&lt;64-hex-hash&gt;  &lt;filename&gt;
+</code></pre>
+<p>Unless <code>-q</code> (quiet) is given, a <code>.sha256</code> sidecar file is written next
+to each input file. The sidecar format is:</p>
+<pre><code class="language-text">&lt;64-hex-hash&gt; *&lt;bare-filename&gt;
+</code></pre>
+<p>Exit code: 0 if all files were hashed successfully, non-zero if any
+file could not be read.</p>
+<hr />
+<h2><a id="verify-v1-6-0" href="#verify-v1-6-0" class="Permalink" aria-hidden="true" title="Permalink">#</a>verify (v1.6.0)</h2>
+<pre><code class="language-text">WinDV verify &lt;file&gt; [file2 ...]
+</code></pre>
+<p>For each file, reads the <code>.sha256</code> sidecar, re-hashes the file, and
+compares the results. Prints <code>OK</code> or <code>FAILED</code> per file.</p>
+<p>Return codes per file (accumulated into the process exit code):</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Hash matches</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Hash mismatch</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Sidecar not found or unreadable</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2><a id="console-output" href="#console-output" class="Permalink" aria-hidden="true" title="Permalink">#</a>Console Output</h2>
+<p>WinDV is a GUI application (<code>/SUBSYSTEM:WINDOWS</code>). Console output for
+all CLI commands uses <code>GetStdHandle(STD_OUTPUT_HANDLE)</code> first (works
+when stdout is redirected to a pipe or file), then falls back to
+<code>SafeAttachConsole()</code> for interactive use.</p>
+<p><code>AllocConsole()</code> is never used, as it would replace inherited standard
+handles.</p>
+    </div>
+
+        <nav>
+        <ul class="Pager">
+            <li class=Pager--prev><a href="../User_Guide/Capture_and_Record.html">Previous</a></li>            <li class=Pager--next><a href="../User_Guide/Settings.html">Next</a></li>        </ul>
+    </nav>
+    </article>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    <!-- JS -->
+            <script src="../themes/daux/js/main.js"></script>
+    
+        <script>
+        
+        window.searchLanguage = "";
+        window.searchTranslation = {"Search_one_result":"1 result","Search_results":"!count results","Search_no_results":"Nothing found","Search_common_words_ignored":"Common words are largely ignored","Search_too_short":"Search too short","Search_one_character_or_more":"Should be one character or more","Search_should_be_x_or_more":"Should be !min characters or more","Link_previous":"Previous","Link_next":"Next"};
+    </script>
+
+    <!-- Search -->
+    <script type="text/javascript" src="../daux_libraries/search.min.js"></script>
+
+    <script>
+        window.search({'base_url': '../'})
+    </script>
+</body>
+</html>

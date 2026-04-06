@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <title>DV Error Detection - WinDV</title>
+    <meta name="description" content="DV Capture & Recording for Windows">
+    <meta name="author" content="Wachhund/WinDV">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link rel="icon" href="../themes/daux/img/favicon-blue.png" type="image/x-icon">
+
+    <!-- Mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- JS -->
+    <script>
+        window.base_url = "../";
+        document.documentElement.classList.remove('no-js');
+    </script>
+
+    <!-- Font -->
+    
+    <!-- CSS -->
+            <link href='../themes/daux/css/theme-blue.min.css' rel='stylesheet' type='text/css'>
+            <link href='../daux_libraries/search.css' rel='stylesheet' type='text/css'>
+    </head>
+<body class="">
+    <div class="Columns content">
+    <aside class="Columns__left Collapsible">
+        <button type="button" class="Button Collapsible__trigger" aria-controls="sidebar_content" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+        </button>
+
+        <a class="Brand" href="../index.html">WinDV</a>
+
+    <form role='search' action="/" method="get" class="Search" id="search_form">
+        <label for="search_input">
+            <span class='u-visuallyHidden'>Search</span>
+        </label>
+        <input
+            type="search"
+            id="search_input"
+            class="Search__field"
+            placeholder="Search docs..."
+            aria-label="Search docs..."
+            autocomplete="on"
+            results=25
+            autosave=text_search
+        >
+        <label>
+            <input type="submit" class='u-visuallyHidden' />
+            <span class='u-visuallyHidden'>Search docs...</span>
+            <svg class="Search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 451 451">
+                <path d="M447.05 428l-109.6-109.6c29.4-33.8 47.2-77.9 47.2-126.1C384.65 86.2 298.35 0 192.35 0 86.25 0 .05 86.3.05 192.3s86.3 192.3 192.3 192.3c48.2 0 92.3-17.8 126.1-47.2L428.05 447c2.6 2.6 6.1 4 9.5 4s6.9-1.3 9.5-4c5.2-5.2 5.2-13.8 0-19zM26.95 192.3c0-91.2 74.2-165.3 165.3-165.3 91.2 0 165.3 74.2 165.3 165.3s-74.1 165.4-165.3 165.4c-91.1 0-165.3-74.2-165.3-165.4z"/>
+            </svg>
+        </label>
+    </form>
+
+        <div class="Collapsible__content" id="sidebar_content">
+            <!-- Navigation -->
+            <ul class='Nav'>
+<li class='Nav__item  has-children'><a href="../Getting_Started/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Getting Started</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Getting_Started/Building.html">Building</a></li>
+<li class='Nav__item '><a href="../Getting_Started/Prerequisites.html">Prerequisites</a></li></ul></li>
+<li class='Nav__item Nav__item--open has-children'><a href="../Architecture/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Architecture</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Architecture/DirectShow_Pipeline.html">DirectShow Pipeline</a></li>
+<li class='Nav__item Nav__item--active'><a href="../Architecture/DV_Error_Detection.html">DV Error Detection</a></li>
+<li class='Nav__item '><a href="../Architecture/SHA_256_Checksums.html">SHA-256 Checksums</a></li>
+<li class='Nav__item '><a href="../Architecture/Threading_Model.html">Threading Model</a></li></ul></li>
+<li class='Nav__item '><a href="../DV_Format/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>DV Format</a><ul class='Nav'></ul></li>
+<li class='Nav__item  has-children'><a href="../User_Guide/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>User Guide</a><ul class='Nav'>
+<li class='Nav__item '><a href="../User_Guide/Capture_and_Record.html">Capture and Record</a></li>
+<li class='Nav__item '><a href="../User_Guide/Command_Line.html">Command Line</a></li>
+<li class='Nav__item '><a href="../User_Guide/Settings.html">Settings</a></li>
+<li class='Nav__item '><a href="../User_Guide/USB_DV_Capture.html">USB DV Capture</a></li></ul></li>
+<li class='Nav__item  has-children'><a href="../Development/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Development</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Development/Coding_Standards.html">Coding Standards</a></li></ul></li></ul>
+            <div class="Links">
+                                    <hr/>
+                                            <a href="https://github.com/Wachhund/WinDV" target="_blank"  rel="noopener noreferrer">GitHub</a>
+                        <br />
+                                            <a href="https://github.com/Wachhund/WinDV/releases" target="_blank"  rel="noopener noreferrer">Releases</a>
+                        <br />
+                                                </div>
+
+                            <div class="CodeToggler">
+                    <hr/>
+                    <label class="Checkbox">Show Code                        <input type="checkbox" class="CodeToggler__button--main" checked="checked"/>
+                        <div class="Checkbox__indicator"></div>
+                    </label>
+                </div>
+            
+            <div class="DarkModeToggler">
+                <hr/>
+                <label class="Checkbox">Dark Mode                    <input type="checkbox" class="ColorMode__button" />
+                    <div class="Checkbox__indicator"></div>
+                </label>
+            </div>
+
+                
+                        </div>
+    </aside>
+    <div class="Columns__right">
+        <div class="Columns__right__content">
+            <div class="doc_content">
+                <article class="Page">
+
+    <div class="Page__header">
+        <h1><a href="../Architecture/index.html">Architecture</a> <svg class="Page__header--separator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 477.175 477.175"><path d="M360.73 229.075l-225.1-225.1c-5.3-5.3-13.8-5.3-19.1 0s-5.3 13.8 0 19.1l215.5 215.5-215.5 215.5c-5.3 5.3-5.3 13.8 0 19.1 2.6 2.6 6.1 4 9.5 4 3.4 0 6.9-1.3 9.5-4l225.1-225.1c5.3-5.2 5.3-13.8.1-19z"/></svg> <a href="../Architecture/DV_Error_Detection.html">DV Error Detection</a></h1>
+                <span class="ModifiedDate">
+            April 5, 2026 at 5:27 PM        </span>
+                        <span class="EditOn">
+            <a href="https://github.com/Wachhund/WinDV/blob/main/site/docs/02_Architecture\DV_Error_Detection.md" target="_blank">
+                Edit on GitHub            </a>
+        </span>
+            </div>
+
+    <div class="s-content">
+        <h1><a id="dv-error-detection" href="#dv-error-detection" class="Permalink" aria-hidden="true" title="Permalink">#</a>DV Error Detection</h1>
+<p><code>DVError.cpp</code> / <code>DVError.h</code> implement per-frame DV error detection based on
+the STA (error concealment status) fields defined in IEC 61834.
+The module has no DirectShow or MFC dependency; it operates on raw DV frame
+buffers.</p>
+<p>This module is compatible with the error metrics used by
+<a href="https://mediaarea.net/DVRescue" class="Link--external" rel="noopener noreferrer">DVRescue</a> and DVAnalyzer.</p>
+<hr />
+<h2><a id="data-structures" href="#data-structures" class="Permalink" aria-hidden="true" title="Permalink">#</a>Data Structures</h2>
+<h3><a id="frameerrorinfo-result-for-a-single-frame" href="#frameerrorinfo-result-for-a-single-frame" class="Permalink" aria-hidden="true" title="Permalink">#</a>FrameErrorInfo – Result for a Single Frame</h3>
+<pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">FrameErrorInfo</span> {</span>
+    DWORD dwVideoErrorBlocks;   <span class="hljs-comment">/* STA != 0 in video DIF blocks */</span>
+    DWORD dwAudioErrorBlocks;   <span class="hljs-comment">/* parity errors in audio DIF blocks */</span>
+    DWORD dwVideoErrorsEven;    <span class="hljs-comment">/* video errors in even DIF sequences (0,2,4,...) */</span>
+    DWORD dwVideoErrorsOdd;     <span class="hljs-comment">/* video errors in odd DIF sequences (1,3,5,...) */</span>
+    DWORD dwVideoSTA_F;         <span class="hljs-comment">/* count of STA=0xF (uncompensated, worst type) */</span>
+};
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dwVideoErrorBlocks</code></td>
+<td>STA != 0 in any video DIF block</td>
+</tr>
+<tr>
+<td><code>dwAudioErrorBlocks</code></td>
+<td>AAUX pack ID == 0xFF in any audio DIF block</td>
+</tr>
+<tr>
+<td><code>dwVideoErrorsEven</code></td>
+<td>Video errors in even DIF sequences (0, 2, 4, …)</td>
+</tr>
+<tr>
+<td><code>dwVideoErrorsOdd</code></td>
+<td>Video errors in odd DIF sequences (1, 3, 5, …)</td>
+</tr>
+<tr>
+<td><code>dwVideoSTA_F</code></td>
+<td>STA == 0xF (uncompensated, worst-case error) count</td>
+</tr>
+</tbody>
+</table>
+<h3><a id="errorstats-cumulative-statistics-for-a-capture-session" href="#errorstats-cumulative-statistics-for-a-capture-session" class="Permalink" aria-hidden="true" title="Permalink">#</a>ErrorStats – Cumulative Statistics for a Capture Session</h3>
+<pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ErrorStats</span> {</span>
+    DWORD dwTotalFrames;
+    DWORD dwFramesWithVideoErrors;
+    DWORD dwFramesWithAudioErrors;
+    DWORD dwTotalVideoErrorBlocks;
+    DWORD dwTotalAudioErrorBlocks;
+    DWORD dwWorstFrameNumber;
+    DWORD dwWorstFrameErrors;
+    DWORD dwTotalSTA_F;
+    DWORD dwVideoErrorsEven;
+    DWORD dwVideoErrorsOdd;
+};
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dwTotalFrames</code></td>
+<td>Total frames analyzed</td>
+</tr>
+<tr>
+<td><code>dwFramesWithVideoErrors</code></td>
+<td>Frames with at least one video STA error</td>
+</tr>
+<tr>
+<td><code>dwFramesWithAudioErrors</code></td>
+<td>Frames with at least one audio error</td>
+</tr>
+<tr>
+<td><code>dwTotalVideoErrorBlocks</code></td>
+<td>Sum of all video error blocks</td>
+</tr>
+<tr>
+<td><code>dwTotalAudioErrorBlocks</code></td>
+<td>Sum of all audio error blocks</td>
+</tr>
+<tr>
+<td><code>dwWorstFrameNumber</code></td>
+<td>0-based index of the frame with most errors</td>
+</tr>
+<tr>
+<td><code>dwWorstFrameErrors</code></td>
+<td>Error count of that worst frame</td>
+</tr>
+<tr>
+<td><code>dwTotalSTA_F</code></td>
+<td>Total uncompensated errors across the session</td>
+</tr>
+<tr>
+<td><code>dwVideoErrorsEven</code></td>
+<td>Total even-sequence video errors</td>
+</tr>
+<tr>
+<td><code>dwVideoErrorsOdd</code></td>
+<td>Total odd-sequence video errors</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2><a id="functions" href="#functions" class="Permalink" aria-hidden="true" title="Permalink">#</a>Functions</h2>
+<pre><code class="hljs cpp"><span class="hljs-function">FrameErrorInfo <span class="hljs-title">AnalyzeDVFrame</span><span class="hljs-params">(<span class="hljs-keyword">const</span> BYTE *data, <span class="hljs-keyword">int</span> len)</span></span>;
+<span class="hljs-function"><span class="hljs-keyword">void</span>           <span class="hljs-title">ResetErrorStats</span><span class="hljs-params">(ErrorStats *stats)</span></span>;
+<span class="hljs-function"><span class="hljs-keyword">void</span>           <span class="hljs-title">AccumulateErrorStats</span><span class="hljs-params">(ErrorStats *stats,
+                                   <span class="hljs-keyword">const</span> FrameErrorInfo *frame,
+                                   DWORD frameNumber)</span></span>;
+</code></pre>
+<p><code>AnalyzeDVFrame()</code> accepts frames of exactly 120,000 bytes (NTSC) or
+144,000 bytes (PAL) and returns all-zero <code>FrameErrorInfo</code> for any other
+length.</p>
+<hr />
+<h2><a id="dif-block-scanning" href="#dif-block-scanning" class="Permalink" aria-hidden="true" title="Permalink">#</a>DIF Block Scanning</h2>
+<p>Within each DIF sequence (150 blocks of 80 bytes), blocks 6 through 149
+contain interleaved audio and video data.
+The SCT field (byte 0, bits 7-5) identifies each block type:</p>
+<ul>
+<li><strong>Video blocks (SCT=4):</strong> the STA field is the upper nibble of byte 3.
+Any non-zero STA value is counted as an error.
+STA == 0xF (uncompensated) is additionally counted in <code>dwVideoSTA_F</code>.</li>
+<li><strong>Audio blocks (SCT=3):</strong> byte 3 is the AAUX pack ID.
+A value of 0xFF indicates the audio data could not be read from tape
+(DVRescue/DVAnalyzer convention).</li>
+</ul>
+<p>Audio blocks are <strong>interleaved</strong> – they appear at fixed positions within
+the block stream, not as a consecutive group:</p>
+<pre><code class="language-text">Index:  6   22  38  54  70  86  102  118  134   (9 audio blocks)
+Stride: every 16th block starting at index 6
+</code></pre>
+<p>Between each pair of audio blocks are 15 video blocks, giving
+135 video blocks per DIF sequence.</p>
+<p>Maximum possible error counts per frame:</p>
+<table>
+<thead>
+<tr>
+<th>Standard</th>
+<th>Video blocks</th>
+<th>Audio blocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NTSC (10 seqs)</td>
+<td>1350</td>
+<td>90</td>
+</tr>
+<tr>
+<td>PAL (12 seqs)</td>
+<td>1620</td>
+<td>108</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2><a id="sta-field-values" href="#sta-field-values" class="Permalink" aria-hidden="true" title="Permalink">#</a>STA Field Values</h2>
+<p>Every video DIF block (SCT=4) carries a 4-bit STA (STAtus) field in the
+upper nibble of byte 3:</p>
+<pre><code class="language-text">Byte 3 of a video DIF block:
+  bits 7-4 : STA  (error concealment status)
+  bits 3-0 : (other data)
+</code></pre>
+<p>STA values per IEC 61834:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x0</td>
+<td>No error – data decoded normally</td>
+</tr>
+<tr>
+<td>0x1</td>
+<td>Concealed by simple interpolation</td>
+</tr>
+<tr>
+<td>0x2</td>
+<td>Concealed by copying from the previous frame</td>
+</tr>
+<tr>
+<td>0x4</td>
+<td>Concealed by copying from the next frame</td>
+</tr>
+<tr>
+<td>0xA</td>
+<td>Concealed – unspecified method</td>
+</tr>
+<tr>
+<td>0xC</td>
+<td>Concealed – unspecified method</td>
+</tr>
+<tr>
+<td>0xF</td>
+<td><strong>Uncompensated error</strong> (worst case – visible artifact)</td>
+</tr>
+</tbody>
+</table>
+<p>Any STA value other than 0x0 indicates that the corresponding DCT block
+could not be decoded cleanly and had to be concealed.
+<code>AnalyzeDVFrame()</code> counts all non-zero STA values as video errors, and
+separately counts 0xF values as <code>dwVideoSTA_F</code> (uncompensated, critical).</p>
+<hr />
+<h2><a id="audio-error-detection" href="#audio-error-detection" class="Permalink" aria-hidden="true" title="Permalink">#</a>Audio Error Detection</h2>
+<p>Audio DIF blocks (SCT=3) use a different mechanism.
+Byte 3 of an audio DIF block is the AAUX pack ID.
+Per the DVRescue/DVAnalyzer convention, a pack ID of <code>0xFF</code> indicates
+the audio data in that block could not be read from tape.</p>
+<p>Maximum possible audio error counts per frame:</p>
+<table>
+<thead>
+<tr>
+<th>Standard</th>
+<th>Sequences</th>
+<th>Audio blocks/seq</th>
+<th>Max audio errors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NTSC</td>
+<td>10</td>
+<td>9</td>
+<td>90</td>
+</tr>
+<tr>
+<td>PAL</td>
+<td>12</td>
+<td>9</td>
+<td>108</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2><a id="even-odd-dif-sequence-analysis" href="#even-odd-dif-sequence-analysis" class="Permalink" aria-hidden="true" title="Permalink">#</a>Even/Odd DIF Sequence Analysis</h2>
+<p>DV camcorders record with two rotating video heads.
+Even-numbered DIF sequences (0, 2, 4, …) are recorded by one head;
+odd-numbered sequences (1, 3, 5, …) by the other.</p>
+<p>Comparing <code>dwVideoErrorsEven</code> and <code>dwVideoErrorsOdd</code> in <code>ErrorStats</code>
+(or <code>FrameErrorInfo</code>) can reveal one-sided head wear or head-switching
+problems:</p>
+<ul>
+<li><strong>Balanced errors</strong> (even ~ odd) – dropout is random, likely due to
+tape condition rather than a specific head.</li>
+<li><strong>Imbalanced errors</strong> (one side dominates) – one head may be dirty,
+worn, or misaligned.</li>
+</ul>
+<p>This is the same head-wear diagnostic approach used by DVRescue and
+DVAnalyzer.</p>
+<hr />
+<h2><a id="integration-in-capturingthread" href="#integration-in-capturingthread" class="Permalink" aria-hidden="true" title="Permalink">#</a>Integration in CapturingThread</h2>
+<p><code>CDV::CapturingThread()</code> calls <code>AnalyzeDVFrame()</code> on every dequeued frame,
+accumulates the result with <code>AccumulateErrorStats()</code> under <code>m_cs</code>, and
+exposes the running totals via <code>CDV::GetErrorStats()</code> (which copies under
+lock for safe access from the UI timer thread).</p>
+<p>Error analysis happens on every frame regardless of whether a <code>CAVIWriter</code>
+is open (i.e., even in <code>CapturePaused</code> state when no file is being written).</p>
+<p>For the synchronization details see
+<a href="Threading_Model.html#synchronisation-primitives">Threading Model</a>.</p>
+<hr />
+<h2><a id="status-bar-display" href="#status-bar-display" class="Permalink" aria-hidden="true" title="Permalink">#</a>Status Bar Display</h2>
+<p>During active capture, the UI timer formats the error statistics into
+<code>m_status3</code>:</p>
+<pre><code class="language-text">Q:N E:N/X.X%
+</code></pre>
+<p>where <code>N</code> (first) is the queue slot count, <code>N</code> (second) is the number of
+frames with at least one video error, and <code>X.X%</code> is the error rate.
+The error portion is omitted when no errors have been detected yet.</p>
+<p>After capture completes, the <code>WM_DV_CHECK_COMPLETE</code> handler builds an
+extended status summary:</p>
+<pre><code class="language-text">AVI OK: N frames, PAL | DV: error-free
+AVI OK: N frames, NTSC | DV errors: M frames (X.X%), worst: #F (N STA),
+    audio: A frames [C CRITICAL]
+AVI problem: &lt;reason&gt; | DV errors: ...
+</code></pre>
+    </div>
+
+        <nav>
+        <ul class="Pager">
+            <li class=Pager--prev><a href="../Architecture/DirectShow_Pipeline.html">Previous</a></li>            <li class=Pager--next><a href="../Architecture/SHA_256_Checksums.html">Next</a></li>        </ul>
+    </nav>
+    </article>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    <!-- JS -->
+            <script src="../themes/daux/js/main.js"></script>
+    
+        <script>
+        
+        window.searchLanguage = "";
+        window.searchTranslation = {"Search_one_result":"1 result","Search_results":"!count results","Search_no_results":"Nothing found","Search_common_words_ignored":"Common words are largely ignored","Search_too_short":"Search too short","Search_one_character_or_more":"Should be one character or more","Search_should_be_x_or_more":"Should be !min characters or more","Link_previous":"Previous","Link_next":"Next"};
+    </script>
+
+    <!-- Search -->
+    <script type="text/javascript" src="../daux_libraries/search.min.js"></script>
+
+    <script>
+        window.search({'base_url': '../'})
+    </script>
+</body>
+</html>

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <title>Threading Model - WinDV</title>
+    <meta name="description" content="DV Capture & Recording for Windows">
+    <meta name="author" content="Wachhund/WinDV">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link rel="icon" href="../themes/daux/img/favicon-blue.png" type="image/x-icon">
+
+    <!-- Mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- JS -->
+    <script>
+        window.base_url = "../";
+        document.documentElement.classList.remove('no-js');
+    </script>
+
+    <!-- Font -->
+    
+    <!-- CSS -->
+            <link href='../themes/daux/css/theme-blue.min.css' rel='stylesheet' type='text/css'>
+            <link href='../daux_libraries/search.css' rel='stylesheet' type='text/css'>
+    </head>
+<body class="">
+    <div class="Columns content">
+    <aside class="Columns__left Collapsible">
+        <button type="button" class="Button Collapsible__trigger" aria-controls="sidebar_content" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+        </button>
+
+        <a class="Brand" href="../index.html">WinDV</a>
+
+    <form role='search' action="/" method="get" class="Search" id="search_form">
+        <label for="search_input">
+            <span class='u-visuallyHidden'>Search</span>
+        </label>
+        <input
+            type="search"
+            id="search_input"
+            class="Search__field"
+            placeholder="Search docs..."
+            aria-label="Search docs..."
+            autocomplete="on"
+            results=25
+            autosave=text_search
+        >
+        <label>
+            <input type="submit" class='u-visuallyHidden' />
+            <span class='u-visuallyHidden'>Search docs...</span>
+            <svg class="Search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 451 451">
+                <path d="M447.05 428l-109.6-109.6c29.4-33.8 47.2-77.9 47.2-126.1C384.65 86.2 298.35 0 192.35 0 86.25 0 .05 86.3.05 192.3s86.3 192.3 192.3 192.3c48.2 0 92.3-17.8 126.1-47.2L428.05 447c2.6 2.6 6.1 4 9.5 4s6.9-1.3 9.5-4c5.2-5.2 5.2-13.8 0-19zM26.95 192.3c0-91.2 74.2-165.3 165.3-165.3 91.2 0 165.3 74.2 165.3 165.3s-74.1 165.4-165.3 165.4c-91.1 0-165.3-74.2-165.3-165.4z"/>
+            </svg>
+        </label>
+    </form>
+
+        <div class="Collapsible__content" id="sidebar_content">
+            <!-- Navigation -->
+            <ul class='Nav'>
+<li class='Nav__item  has-children'><a href="../Getting_Started/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Getting Started</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Getting_Started/Building.html">Building</a></li>
+<li class='Nav__item '><a href="../Getting_Started/Prerequisites.html">Prerequisites</a></li></ul></li>
+<li class='Nav__item Nav__item--open has-children'><a href="../Architecture/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Architecture</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Architecture/DirectShow_Pipeline.html">DirectShow Pipeline</a></li>
+<li class='Nav__item '><a href="../Architecture/DV_Error_Detection.html">DV Error Detection</a></li>
+<li class='Nav__item '><a href="../Architecture/SHA_256_Checksums.html">SHA-256 Checksums</a></li>
+<li class='Nav__item Nav__item--active'><a href="../Architecture/Threading_Model.html">Threading Model</a></li></ul></li>
+<li class='Nav__item '><a href="../DV_Format/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>DV Format</a><ul class='Nav'></ul></li>
+<li class='Nav__item  has-children'><a href="../User_Guide/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>User Guide</a><ul class='Nav'>
+<li class='Nav__item '><a href="../User_Guide/Capture_and_Record.html">Capture and Record</a></li>
+<li class='Nav__item '><a href="../User_Guide/Command_Line.html">Command Line</a></li>
+<li class='Nav__item '><a href="../User_Guide/Settings.html">Settings</a></li>
+<li class='Nav__item '><a href="../User_Guide/USB_DV_Capture.html">USB DV Capture</a></li></ul></li>
+<li class='Nav__item  has-children'><a href="../Development/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Development</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Development/Coding_Standards.html">Coding Standards</a></li></ul></li></ul>
+            <div class="Links">
+                                    <hr/>
+                                            <a href="https://github.com/Wachhund/WinDV" target="_blank"  rel="noopener noreferrer">GitHub</a>
+                        <br />
+                                            <a href="https://github.com/Wachhund/WinDV/releases" target="_blank"  rel="noopener noreferrer">Releases</a>
+                        <br />
+                                                </div>
+
+                            <div class="CodeToggler">
+                    <hr/>
+                    <label class="Checkbox">Show Code                        <input type="checkbox" class="CodeToggler__button--main" checked="checked"/>
+                        <div class="Checkbox__indicator"></div>
+                    </label>
+                </div>
+            
+            <div class="DarkModeToggler">
+                <hr/>
+                <label class="Checkbox">Dark Mode                    <input type="checkbox" class="ColorMode__button" />
+                    <div class="Checkbox__indicator"></div>
+                </label>
+            </div>
+
+                
+                        </div>
+    </aside>
+    <div class="Columns__right">
+        <div class="Columns__right__content">
+            <div class="doc_content">
+                <article class="Page">
+
+    <div class="Page__header">
+        <h1><a href="../Architecture/index.html">Architecture</a> <svg class="Page__header--separator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 477.175 477.175"><path d="M360.73 229.075l-225.1-225.1c-5.3-5.3-13.8-5.3-19.1 0s-5.3 13.8 0 19.1l215.5 215.5-215.5 215.5c-5.3 5.3-5.3 13.8 0 19.1 2.6 2.6 6.1 4 9.5 4 3.4 0 6.9-1.3 9.5-4l225.1-225.1c5.3-5.2 5.3-13.8.1-19z"/></svg> <a href="../Architecture/Threading_Model.html">Threading Model</a></h1>
+                <span class="ModifiedDate">
+            April 5, 2026 at 5:26 PM        </span>
+                        <span class="EditOn">
+            <a href="https://github.com/Wachhund/WinDV/blob/main/site/docs/02_Architecture\Threading_Model.md" target="_blank">
+                Edit on GitHub            </a>
+        </span>
+            </div>
+
+    <div class="s-content">
+        <h1><a id="threading-model" href="#threading-model" class="Permalink" aria-hidden="true" title="Permalink">#</a>Threading Model</h1>
+<p>WinDV runs up to five concurrent threads.
+This document describes each thread’s role, the CDVQueue ring buffer that
+connects them, the synchronisation primitives used, and the shutdown
+sequence that must be respected to avoid deadlocks and data corruption.</p>
+<p>Related reading:
+<a href="index.html#cdv-state-machine">Architecture</a> for state transitions,
+<a href="DirectShow_Pipeline.html">DirectShow Pipeline</a> for the pipeline each thread
+operates on.</p>
+<hr />
+<h2><a id="thread-inventory" href="#thread-inventory" class="Permalink" aria-hidden="true" title="Permalink">#</a>Thread Inventory</h2>
+<table>
+<thead>
+<tr>
+<th>Thread</th>
+<th>Owner</th>
+<th>Priority</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Main (UI)</td>
+<td><code>CDVToolsDlg</code></td>
+<td><code>HIGH_PRIORITY_CLASS</code></td>
+<td>Message pump, timer</td>
+</tr>
+<tr>
+<td>DS streaming</td>
+<td>DS runtime</td>
+<td>Unmanaged</td>
+<td><code>Receive()</code> / <code>Deliver()</code></td>
+</tr>
+<tr>
+<td>Capturing</td>
+<td><code>CDV</code></td>
+<td><code>NORMAL</code></td>
+<td>Drains queue, writes AVI</td>
+</tr>
+<tr>
+<td>Recording</td>
+<td><code>CDV</code></td>
+<td><code>NORMAL</code></td>
+<td>Drains queue, sends to out</td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td><code>CMonitor</code></td>
+<td><code>BELOW_NORMAL</code></td>
+<td>Rate-limited preview</td>
+</tr>
+<tr>
+<td>Joiner</td>
+<td><code>CAVIJoiner</code></td>
+<td><code>NORMAL</code></td>
+<td>Sequential file transitions</td>
+</tr>
+</tbody>
+</table>
+<p>Only one of CapturingThread or RecordingThread is active at a time
+(they are mutually exclusive modes).
+JoinerThread is only active during a record session.
+MonitoringThread is active whenever <code>CMonitor</code> is alive (both modes).
+The DirectShow streaming thread is managed entirely by the DirectShow
+runtime and is not created or joined by WinDV directly.</p>
+<p><strong>Why <code>HIGH_PRIORITY_CLASS</code>?</strong>
+DV runs at a fixed 25 fps (PAL) or 29.97 fps (NTSC).
+A single missed frame cannot be recovered.
+Raising the process priority class reduces the likelihood that the OS
+scheduler preempts WinDV during the narrow window between frame arrival
+and disk write.</p>
+<hr />
+<h2><a id="cdvqueue-ring-buffer" href="#cdvqueue-ring-buffer" class="Permalink" aria-hidden="true" title="Permalink">#</a>CDVQueue Ring Buffer</h2>
+<p><code>CDVQueue</code> is a fixed-capacity FIFO ring buffer for raw DV frames.
+It bridges the DirectShow streaming thread (producer) with the
+CapturingThread or RecordingThread (consumer).</p>
+<h3><a id="memory-layout" href="#memory-layout" class="Permalink" aria-hidden="true" title="Permalink">#</a>Memory Layout</h3>
+<pre><code class="language-text">m_buffers[]  (single contiguous allocation)
++----------+----------+----------+----------+
+| Buffer 0 | Buffer 1 | Buffer 2 |   ...    |
++----------+----------+----------+----------+
+  ^                                 ^
+  m_queue[0]                        m_queue[N]
+
+struct Buffer {
+    REFERENCE_TIME duration;   // frame duration (100-ns units)
+    int            len;        // valid bytes in data[]
+    BYTE           data[1];    // variable-length; actual size = m_dataSize
+};
+</code></pre>
+<p>The queue is constructed with <code>queueSize + 1</code> slots so that <code>m_load</code>
+unambiguously represents the number of filled slots.
+A classic two-pointer ring (head == tail = full OR empty?) requires an
+extra sentinel; using an explicit <code>m_load</code> counter avoids that ambiguity.</p>
+<p>Default parameters in <code>CDV::BuildCapturing()</code> and <code>CDV::BuildRecording()</code>:</p>
+<pre><code class="hljs cpp">m_queue = <span class="hljs-keyword">new</span> CDVQueue(<span class="hljs-number">100</span>, type.GetSampleSize());
+</code></pre>
+<ul>
+<li>100 slots at PAL frame size (144,000 bytes) = ~13.8 MB total.</li>
+<li>At 25 fps this represents 4 seconds of buffering.</li>
+</ul>
+<h3><a id="producer-cdvqueue-put-duration-data-len" href="#producer-cdvqueue-put-duration-data-len" class="Permalink" aria-hidden="true" title="Permalink">#</a>Producer: <code>CDVQueue::Put(duration, data, len)</code></h3>
+<p>Called on the DirectShow streaming thread via <code>CDV::HandleFrame()</code>.</p>
+<pre><code class="language-text">data != NULL:
+  Acquire m_cs
+    if m_load &lt; m_queueSize - 1:
+      copy data into m_queue[m_tail]-&gt;data
+      advance m_tail, increment m_load
+      signal m_evGet  (wake consumer if blocked)
+    else:
+      release m_cs, wait on m_evPut (ring full, backpressure)
+      retry
+
+data == NULL (end-of-stream):
+  set m_end = true
+  signal both m_evGet and m_evPut  (wake any blocked thread)
+  return immediately
+</code></pre>
+<p>If the ring is full the producer blocks on <code>m_evPut</code>.
+This propagates backpressure upstream: the FireWire driver’s own internal
+buffer absorbs the brief stall.
+If that buffer also fills, frames are dropped at the driver level and
+counted by <code>IAMDroppedFrames</code>.</p>
+<h3><a id="consumer-cdvqueue-get-duration-data-len" href="#consumer-cdvqueue-get-duration-data-len" class="Permalink" aria-hidden="true" title="Permalink">#</a>Consumer: <code>CDVQueue::Get(duration, data, len)</code></h3>
+<p>Called on CapturingThread or RecordingThread.</p>
+<pre><code class="language-text">Acquire m_cs
+  if m_load &gt; 0:
+    read m_queue[m_head]
+    advance m_head, decrement m_load
+    signal m_evPut  (wake producer if blocked)
+    return true
+  else:
+    if m_end: return false  (EOS, ring empty)
+    release m_cs, wait on m_evGet
+    retry
+</code></pre>
+<p>The returned <code>*data</code> pointer points <strong>directly into the ring slot</strong>.
+The caller must consume or copy the data before calling <code>Get()</code> again,
+because the next <code>Put()</code> may overwrite the same slot.
+In practice, <code>CapturingThread</code> passes the pointer directly to
+<code>CAVIWriter::HandleFrame()</code> (which calls <code>CopyMemory</code> internally) before
+calling <code>Get()</code> again.</p>
+<h3><a id="consumer-cdvqueue-getwithtimeout-duration-data-len-timeout" href="#consumer-cdvqueue-getwithtimeout-duration-data-len-timeout" class="Permalink" aria-hidden="true" title="Permalink">#</a>Consumer: <code>CDVQueue::GetWithTimeout(duration, data, len, timeout)</code></h3>
+<p>Introduced in v1.2.7.
+Identical to <code>Get()</code> except that instead of blocking indefinitely on
+<code>m_evGet</code>, it uses <code>WaitForSingleObject(m_evGet, timeout)</code>.</p>
+<pre><code class="language-text">Acquire m_cs
+  if m_load &gt; 0:
+    read m_queue[m_head]
+    advance m_head, decrement m_load
+    signal m_evPut
+    return true
+  else:
+    if m_end: return false
+    release m_cs
+    result = WaitForSingleObject(m_evGet, timeout)
+    if result == WAIT_TIMEOUT: return false  (signal lost)
+    retry
+</code></pre>
+<p>When the wait times out the function returns <code>false</code> with <code>*data == NULL</code>
+and <code>*len == 0</code>, which <code>CapturingThread</code> distinguishes from a genuine
+EOS (<code>m_end == true</code>) to detect signal loss.
+See <a href="#thread-lifecycle">CapturingThread</a> for how the
+timeout drives the auto-stop behaviour.</p>
+<hr />
+<h2><a id="synchronisation-primitives" href="#synchronisation-primitives" class="Permalink" aria-hidden="true" title="Permalink">#</a>Synchronisation Primitives</h2>
+<table>
+<thead>
+<tr>
+<th>Primitive</th>
+<th>Class</th>
+<th>Protects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CCritSec m_cs</code></td>
+<td><code>CDVQueue</code></td>
+<td><code>m_head</code>, <code>m_tail</code>, <code>m_load</code></td>
+</tr>
+<tr>
+<td><code>CEvent m_evGet</code></td>
+<td><code>CDVQueue</code></td>
+<td>Signals consumer when a slot is filled</td>
+</tr>
+<tr>
+<td><code>CEvent m_evPut</code></td>
+<td><code>CDVQueue</code></td>
+<td>Signals producer when a slot is freed</td>
+</tr>
+<tr>
+<td><code>CEvent m_ev</code></td>
+<td><code>CAVIJoiner</code></td>
+<td>Signals JoinerThread on EOS</td>
+</tr>
+<tr>
+<td><code>CEvent m_ev</code></td>
+<td><code>CMonitor</code></td>
+<td>Signals MonitoringThread on frame ready</td>
+</tr>
+<tr>
+<td><code>CCritSec m_cs</code></td>
+<td><code>CDV</code></td>
+<td>Protects <code>m_captureFilename</code> and <code>m_errorStats</code></td>
+</tr>
+<tr>
+<td><code>CAutoLock</code></td>
+<td>Both</td>
+<td>RAII guard for CCritSec</td>
+</tr>
+</tbody>
+</table>
+<p><code>m_errorStats</code> (<code>CDV::m_errorStats</code>, <code>ErrorStats</code>) is updated by
+<code>CapturingThread</code> after every frame via <code>AccumulateErrorStats()</code> under a
+<code>CAutoLock</code> on <code>CDV::m_cs</code>.
+The UI timer reads it from the main thread via <code>CDV::GetErrorStats()</code>,
+which copies the struct under the same lock:</p>
+<pre><code class="hljs cpp"><span class="hljs-function">ErrorStats <span class="hljs-title">CDV::GetErrorStats</span><span class="hljs-params">()</span>
+</span>{
+    <span class="hljs-function">CAutoLock <span class="hljs-title">lock</span><span class="hljs-params">(&amp;m_cs)</span></span>;
+    <span class="hljs-keyword">return</span> m_errorStats;
+}
+</code></pre>
+<p>This copy-under-lock pattern avoids partial reads of the multi-field
+struct without needing a reader/writer lock.</p>
+<p><code>CEvent</code> in the DirectShow BaseClasses wraps a Win32 manual-reset event.
+<code>CSingleLock::Lock()</code> on a <code>CEvent</code> calls <code>WaitForSingleObject(INFINITE)</code>.
+<code>CDVQueue::GetWithTimeout()</code> calls <code>WaitForSingleObject(m_evGet, timeout)</code>
+directly to support a finite wait without <code>CSingleLock</code>.</p>
+<p><code>CAutoLock</code> is the RAII lock guard for <code>CCritSec</code>.
+It is used as a local variable:</p>
+<pre><code class="hljs cpp">{
+    <span class="hljs-function">CAutoLock <span class="hljs-title">lock</span><span class="hljs-params">(&amp;m_cs)</span></span>;
+    <span class="hljs-comment">// m_cs held here</span>
+}   <span class="hljs-comment">// m_cs released at scope exit</span>
+</code></pre>
+<hr />
+<h2><a id="thread-lifecycle" href="#thread-lifecycle" class="Permalink" aria-hidden="true" title="Permalink">#</a>Thread Lifecycle</h2>
+<p>All application-managed threads follow the same pattern:</p>
+<pre><code class="hljs cpp">m_thread = AfxBeginThread(
+    ThreadProc,          <span class="hljs-comment">// static UINT __cdecl trampoline</span>
+    <span class="hljs-keyword">this</span>,                <span class="hljs-comment">// parameter (cast to correct type in body)</span>
+    THREAD_PRIORITY_xxx,
+    <span class="hljs-number">0</span>,                   <span class="hljs-comment">// stack size (0 = default)</span>
+    CREATE_SUSPENDED     <span class="hljs-comment">// start suspended</span>
+);
+m_thread-&gt;m_bAutoDelete = FALSE;   <span class="hljs-comment">// prevent automatic deletion on exit</span>
+m_thread-&gt;ResumeThread();          <span class="hljs-comment">// start running</span>
+</code></pre>
+<p><strong>Why <code>CREATE_SUSPENDED</code> followed by <code>ResumeThread()</code>?</strong>
+<code>m_bAutoDelete = FALSE</code> must be set before the thread runs, otherwise the
+<code>CWinThread</code> object could be deleted by the MFC framework before the owner
+has a chance to call <code>WaitForSingleObject()</code> and <code>delete m_thread</code>.
+The suspended start gives a window to set the flag atomically.</p>
+<p><strong>Why <code>m_bAutoDelete = FALSE</code>?</strong>
+The default <code>TRUE</code> causes MFC to <code>delete this</code> when the thread proc
+returns.
+With <code>FALSE</code>, ownership stays with the creating object
+(<code>CDV</code>, <code>CMonitor</code>, <code>CAVIJoiner</code>), which explicitly calls
+<code>WaitForSingleObject(m_thread-&gt;m_hThread, INFINITE)</code> followed by
+<code>delete m_thread</code>.
+This guarantees the thread has fully exited before any shared state is
+freed.</p>
+<hr />
+<h2><a id="cross-thread-ui-updates" href="#cross-thread-ui-updates" class="Permalink" aria-hidden="true" title="Permalink">#</a>Cross-thread UI Updates</h2>
+<p>All Win32 window operations must happen on the thread that created the
+window – the main UI thread.</p>
+<p><code>CDV::CapturingThread()</code> and <code>CDV::RecordingThread()</code> post
+<code>WM_DV_TIMECHANGE</code> to the parent window whenever the DV recording
+timestamp changes:</p>
+<pre><code class="hljs cpp">GetParent()-&gt;PostMessage(WM_DV_TIMECHANGE, <span class="hljs-number">0</span>, dvTime);
+</code></pre>
+<p><code>PostMessage</code> is non-blocking: it places the message in the window’s
+message queue and returns immediately.
+The main thread processes it in <code>CDVToolsDlg::OnDVTimeChange()</code>,
+which reads <code>lParam</code> as a <code>time_t</code> and updates <code>m_status2</code>.</p>
+<p><code>WM_DV_TIMECHANGE</code> is defined as <code>WM_USER + 201</code> and routed via
+<code>ON_MESSAGE(WM_DV_TIMECHANGE, OnDVTimeChange)</code> in the message map.</p>
+<p>Status labels (<code>m_status</code>, <code>m_counter</code>, <code>m_status3</code>) are updated by the
+200 ms UI timer (<code>OnTimer</code>), which calls <code>CDV::GetState()</code>,
+<code>CDV::GetTime()</code>, <code>CDV::GetDropped()</code>, and <code>CDV::GetQueueLoad()</code>.
+These accessors return <code>int</code> / <code>REFERENCE_TIME</code> values; their reads are
+not individually lock-protected because they are updated by a single
+worker thread and consumed by the UI thread at a much lower rate.
+The only lock-protected cross-thread value is <code>m_captureFilename</code>
+(guarded by <code>CDV::m_cs</code>).</p>
+<hr />
+<h2><a id="preview-throttling-strategy" href="#preview-throttling-strategy" class="Permalink" aria-hidden="true" title="Permalink">#</a>Preview Throttling Strategy</h2>
+<p>Preview is deliberately deprioritised relative to the primary data path.
+The throttling direction differs between the two modes.</p>
+<h3><a id="capture-mode-capturingthread" href="#capture-mode-capturingthread" class="Permalink" aria-hidden="true" title="Permalink">#</a>Capture Mode (CapturingThread)</h3>
+<pre><code class="hljs cpp"><span class="hljs-keyword">if</span> (m_queue-&gt;m_load &lt; m_queue-&gt;m_queueSize / <span class="hljs-number">2</span>)
+    m_monitor-&gt;HandleFrame(duration, buffer, len);
+</code></pre>
+<p>Preview is sent only when the queue is <strong>below half full</strong>.
+A queue above half capacity means the disk is falling behind;
+skipping preview prevents the DV decoder and video renderer from
+competing with disk I/O for CPU time.</p>
+<h4><a id="disk-space-monitoring-v1-2-6" href="#disk-space-monitoring-v1-2-6" class="Permalink" aria-hidden="true" title="Permalink">#</a>Disk Space Monitoring (v1.2.6)</h4>
+<p>Every ~1500 frames (approximately one minute at 25 fps)
+<code>CapturingThread</code> calls <code>GetDiskFreeSpaceEx()</code> on the drive root
+extracted from <code>m_captureFilename</code>.
+If fewer than 500 MB remain, it posts <code>WM_DV_LOWDISKSPACE</code>
+(<code>WM_USER + 202</code>) to the parent window. <code>lParam</code> carries
+the remaining free space in megabytes.</p>
+<h4><a id="signal-loss-detection-v1-2-7" href="#signal-loss-detection-v1-2-7" class="Permalink" aria-hidden="true" title="Permalink">#</a>Signal Loss Detection (v1.2.7)</h4>
+<p>When <code>CDV::m_autoStopTimeout &gt; 0</code>, <code>CapturingThread</code> calls
+<code>CDVQueue::GetWithTimeout(…, m_autoStopTimeout)</code> instead of the
+blocking <code>Get()</code>.
+If <code>GetWithTimeout()</code> returns <code>false</code> without <code>m_end</code> being set
+(i.e. the wait timed out), the thread treats this as a lost signal:
+it posts <code>WM_DV_SIGNALLOST</code> (<code>WM_USER + 203</code>) to the parent window,
+sets the capture state to <code>Finished</code>, and exits.
+The default timeout is 5000 ms; setting <code>m_autoStopTimeout</code> to 0
+disables the feature and restores the original blocking behaviour.</p>
+<h4><a id="post-capture-phase-v1-6-0" href="#post-capture-phase-v1-6-0" class="Permalink" aria-hidden="true" title="Permalink">#</a>Post-capture Phase (v1.6.0)</h4>
+<p>After the last frame has been written and the <code>CAVIWriter</code> is deleted
+(which finalizes the AVI file), <code>CapturingThread</code> performs a sequence of
+post-capture operations on the completed file before posting to the UI.
+This phase runs entirely within <code>CapturingThread</code> – it does not require
+UI interaction:</p>
+<pre><code class="language-text">1. Copy m_errorStats under m_cs lock into capStats.errorStats.
+2. CheckAVIIntegrity(m_captureFilename)
+      -- full RIFF structural validation (AVICheck.cpp).
+      -- result stored in m_lastCheckResult.
+3. ComputeFileSHA256(m_captureFilename, capStats.szSHA256)  [if m_enableSHA256]
+      -- streams the file in 64 KB blocks through sha256.c.
+      -- WriteSHA256Sidecar() writes &lt;filename&gt;.sha256 next to the AVI.
+4. WriteCaptureLog(logPath, capStats)
+      -- appends one CSV row to WinDV_CaptureLog.csv in the capture directory.
+5. PostMessage(WM_DV_CHECK_COMPLETE, bCheckPassed, 0)
+      -- CDVToolsDlg::OnDVCheckComplete() reads m_lastCheckResult and
+        m_errorStats to build the status-bar summary.
+</code></pre>
+<p>Steps 2-4 are I/O-bound and may take several seconds for large files.
+They run on <code>CapturingThread</code>, not the UI thread, so the dialog remains
+responsive throughout.</p>
+<p><code>WM_DV_CHECK_COMPLETE</code> is defined as <code>WM_USER + 204</code>.</p>
+<p><strong>SafeAttachConsole:</strong>
+<code>SafeAttachConsole()</code> is declared in <code>StdAfx.h</code> as an inline function.
+It loads <code>AttachConsole()</code> at runtime via <code>GetProcAddress</code> from
+<code>kernel32.dll</code>, making the binary link on Windows 2000 (where
+<code>AttachConsole</code> is not available) while still supporting console
+attachment on XP and later.
+This follows the same XP-compatibility pattern used for other newer APIs
+such as the DPI-awareness functions in <code>WinDV.cpp</code>.</p>
+<h3><a id="record-mode-recordingthread" href="#record-mode-recordingthread" class="Permalink" aria-hidden="true" title="Permalink">#</a>Record Mode (RecordingThread)</h3>
+<pre><code class="hljs cpp"><span class="hljs-keyword">if</span> (m_recordPreview) {
+    <span class="hljs-keyword">if</span> (m_queue-&gt;m_end || m_queue-&gt;m_load &gt; m_queue-&gt;m_queueSize / <span class="hljs-number">2</span>)
+        m_monitor-&gt;HandleFrame(duration, buffer, len);
+}
+</code></pre>
+<p>Preview is sent only when the queue is <strong>above half full</strong> (or EOS).
+During recording, the queue is filled from AVI files on disk; a full
+queue means the source is reading ahead of the DV device’s consumption.
+A nearly-empty queue means frames are being consumed as fast as they
+arrive; skipping preview prevents MonitoringThread from stalling the
+delivery to the DV device.</p>
+<h3><a id="monitoringthread-rate-limiter" href="#monitoringthread-rate-limiter" class="Permalink" aria-hidden="true" title="Permalink">#</a>MonitoringThread Rate Limiter</h3>
+<p>Even when the calling thread does offer a frame to <code>CMonitor</code>,
+<code>MonitoringThread</code> imposes an additional rate limit of approximately
+5 fps via a dynamic sleep:</p>
+<pre><code class="hljs cpp">ticks = GetTickCount() - ticks;
+Sleep(ticks &lt; <span class="hljs-number">200</span> ? ticks + <span class="hljs-number">10</span> : <span class="hljs-number">200</span>);
+</code></pre>
+<p>If less than 200 ms has elapsed since the last delivery, it sleeps the
+remaining time (plus 10 ms to avoid busy-looping).
+If more than 200 ms has elapsed, it sleeps the full 200 ms maximum.</p>
+<hr />
+<h2><a id="shutdown-sequence" href="#shutdown-sequence" class="Permalink" aria-hidden="true" title="Permalink">#</a>Shutdown Sequence</h2>
+<p><code>CDV::Destroy()</code> performs a carefully ordered teardown to avoid deadlocks
+and ensure all data is flushed to disk:</p>
+<pre><code class="language-text">1.  m_state = Idle
+    CapturingThread / RecordingThread check m_state at the top of their
+    loops; setting Idle causes them to exit on the next iteration.
+
+2.  m_queue-&gt;Put(-1, NULL, 0)
+    Sends the EOS sentinel.  If the worker thread is blocked in
+    CDVQueue::Get(), it will wake up and see m_end = true.
+
+3.  m_aviJoiner-&gt;Stop()  or  m_dvInput-&gt;Stop()
+    Stops the frame source so no new frames enter the queue.
+    Stop() for CAVIJoiner sets m_stopping and signals m_ev to unblock
+    JoinerThread; it then waits for JoinerThread to exit.
+
+4.  WaitForSingleObject(m_thread-&gt;m_hThread, INFINITE)
+    Blocks until the worker thread (CapturingThread or RecordingThread)
+    has exited cleanly.
+    delete m_thread.
+
+5.  delete m_aviJoiner / delete m_dvInput
+6.  delete m_aviWriter
+    CAVIWriter destructor sends DeliverEndOfStream(), waits up to 5 s
+    for EC_COMPLETE, then renames the temp file to its final name.
+7.  delete m_dvOutput
+    CDVOutput destructor waits up to 5 s for EC_COMPLETE.
+8.  delete m_monitor
+    CMonitor destructor releases IVideoWindow, signals m_ev to wake
+    MonitoringThread, waits for MonitoringThread to exit, then deletes
+    it.
+9.  delete m_queue
+10. Reset m_dropped, m_counter, m_time, m_captureTime.
+</code></pre>
+<p>The ordering in steps 5-8 is critical:</p>
+<ul>
+<li><code>m_aviWriter</code> must be deleted before <code>m_monitor</code> because <code>CapturingThread</code>
+may still be writing to <code>m_aviWriter</code> while consuming from the queue.
+Step 4 guarantees the thread is done before either is deleted.</li>
+<li><code>m_dvOutput</code> and <code>m_monitor</code> both wait internally for their own threads
+(<code>COutputQueue</code> delivery thread and <code>MonitoringThread</code>), so they are safe
+to delete after the worker thread has exited.</li>
+<li><code>m_queue</code> is deleted last because <code>m_monitor-&gt;HandleFrame()</code> may be
+called by CapturingThread right up to the moment the thread exits.</li>
+</ul>
+    </div>
+
+        <nav>
+        <ul class="Pager">
+            <li class=Pager--prev><a href="../Architecture/SHA_256_Checksums.html">Previous</a></li>            <li class=Pager--next><a href="../DV_Format/index.html">Next</a></li>        </ul>
+    </nav>
+    </article>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    <!-- JS -->
+            <script src="../themes/daux/js/main.js"></script>
+    
+        <script>
+        
+        window.searchLanguage = "";
+        window.searchTranslation = {"Search_one_result":"1 result","Search_results":"!count results","Search_no_results":"Nothing found","Search_common_words_ignored":"Common words are largely ignored","Search_too_short":"Search too short","Search_one_character_or_more":"Should be one character or more","Search_should_be_x_or_more":"Should be !min characters or more","Link_previous":"Previous","Link_next":"Next"};
+    </script>
+
+    <!-- Search -->
+    <script type="text/javascript" src="../daux_libraries/search.min.js"></script>
+
+    <script>
+        window.search({'base_url': '../'})
+    </script>
+</body>
+</html>

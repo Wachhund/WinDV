@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <title>Architecture - WinDV</title>
+    <meta name="description" content="DV Capture & Recording for Windows">
+    <meta name="author" content="Wachhund/WinDV">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link rel="icon" href="../themes/daux/img/favicon-blue.png" type="image/x-icon">
+
+    <!-- Mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- JS -->
+    <script>
+        window.base_url = "../";
+        document.documentElement.classList.remove('no-js');
+    </script>
+
+    <!-- Font -->
+    
+    <!-- CSS -->
+            <link href='../themes/daux/css/theme-blue.min.css' rel='stylesheet' type='text/css'>
+            <link href='../daux_libraries/search.css' rel='stylesheet' type='text/css'>
+    </head>
+<body class="">
+    <div class="Columns content">
+    <aside class="Columns__left Collapsible">
+        <button type="button" class="Button Collapsible__trigger" aria-controls="sidebar_content" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+            <span class="Collapsible__trigger__bar"></span>
+        </button>
+
+        <a class="Brand" href="../index.html">WinDV</a>
+
+    <form role='search' action="/" method="get" class="Search" id="search_form">
+        <label for="search_input">
+            <span class='u-visuallyHidden'>Search</span>
+        </label>
+        <input
+            type="search"
+            id="search_input"
+            class="Search__field"
+            placeholder="Search docs..."
+            aria-label="Search docs..."
+            autocomplete="on"
+            results=25
+            autosave=text_search
+        >
+        <label>
+            <input type="submit" class='u-visuallyHidden' />
+            <span class='u-visuallyHidden'>Search docs...</span>
+            <svg class="Search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 451 451">
+                <path d="M447.05 428l-109.6-109.6c29.4-33.8 47.2-77.9 47.2-126.1C384.65 86.2 298.35 0 192.35 0 86.25 0 .05 86.3.05 192.3s86.3 192.3 192.3 192.3c48.2 0 92.3-17.8 126.1-47.2L428.05 447c2.6 2.6 6.1 4 9.5 4s6.9-1.3 9.5-4c5.2-5.2 5.2-13.8 0-19zM26.95 192.3c0-91.2 74.2-165.3 165.3-165.3 91.2 0 165.3 74.2 165.3 165.3s-74.1 165.4-165.3 165.4c-91.1 0-165.3-74.2-165.3-165.4z"/>
+            </svg>
+        </label>
+    </form>
+
+        <div class="Collapsible__content" id="sidebar_content">
+            <!-- Navigation -->
+            <ul class='Nav'>
+<li class='Nav__item  has-children'><a href="../Getting_Started/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Getting Started</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Getting_Started/Building.html">Building</a></li>
+<li class='Nav__item '><a href="../Getting_Started/Prerequisites.html">Prerequisites</a></li></ul></li>
+<li class='Nav__item Nav__item--open has-children'><a href="../Architecture/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Architecture</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Architecture/DirectShow_Pipeline.html">DirectShow Pipeline</a></li>
+<li class='Nav__item '><a href="../Architecture/DV_Error_Detection.html">DV Error Detection</a></li>
+<li class='Nav__item '><a href="../Architecture/SHA_256_Checksums.html">SHA-256 Checksums</a></li>
+<li class='Nav__item '><a href="../Architecture/Threading_Model.html">Threading Model</a></li></ul></li>
+<li class='Nav__item '><a href="../DV_Format/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>DV Format</a><ul class='Nav'></ul></li>
+<li class='Nav__item  has-children'><a href="../User_Guide/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>User Guide</a><ul class='Nav'>
+<li class='Nav__item '><a href="../User_Guide/Capture_and_Record.html">Capture and Record</a></li>
+<li class='Nav__item '><a href="../User_Guide/Command_Line.html">Command Line</a></li>
+<li class='Nav__item '><a href="../User_Guide/Settings.html">Settings</a></li>
+<li class='Nav__item '><a href="../User_Guide/USB_DV_Capture.html">USB DV Capture</a></li></ul></li>
+<li class='Nav__item  has-children'><a href="../Development/index.html" class="Nav__item__link"><i class="Nav__arrow">&nbsp;</i>Development</a><ul class='Nav'>
+<li class='Nav__item '><a href="../Development/Coding_Standards.html">Coding Standards</a></li></ul></li></ul>
+            <div class="Links">
+                                    <hr/>
+                                            <a href="https://github.com/Wachhund/WinDV" target="_blank"  rel="noopener noreferrer">GitHub</a>
+                        <br />
+                                            <a href="https://github.com/Wachhund/WinDV/releases" target="_blank"  rel="noopener noreferrer">Releases</a>
+                        <br />
+                                                </div>
+
+                            <div class="CodeToggler">
+                    <hr/>
+                    <label class="Checkbox">Show Code                        <input type="checkbox" class="CodeToggler__button--main" checked="checked"/>
+                        <div class="Checkbox__indicator"></div>
+                    </label>
+                </div>
+            
+            <div class="DarkModeToggler">
+                <hr/>
+                <label class="Checkbox">Dark Mode                    <input type="checkbox" class="ColorMode__button" />
+                    <div class="Checkbox__indicator"></div>
+                </label>
+            </div>
+
+                
+                        </div>
+    </aside>
+    <div class="Columns__right">
+        <div class="Columns__right__content">
+            <div class="doc_content">
+                <article class="Page">
+
+    <div class="Page__header">
+        <h1><a href="../Architecture/index.html">Architecture</a></h1>
+                <span class="ModifiedDate">
+            April 5, 2026 at 5:21 PM        </span>
+                        <span class="EditOn">
+            <a href="https://github.com/Wachhund/WinDV/blob/main/site/docs/02_Architecture\_index.md" target="_blank">
+                Edit on GitHub            </a>
+        </span>
+            </div>
+
+    <div class="s-content">
+        <h1><a id="architecture" href="#architecture" class="Permalink" aria-hidden="true" title="Permalink">#</a>Architecture</h1>
+<p>This document describes the high-level structure of WinDV: how the application
+starts, how the major classes relate to one another, and how the CDV
+orchestrator’s state machine drives the pipeline.</p>
+<p>For a component-level description of the DirectShow filter
+graphs, see <a href="DirectShow_Pipeline.html">DirectShow Pipeline</a>.
+For thread roles and synchronization, see
+<a href="Threading_Model.html">Threading Model</a>.</p>
+<hr />
+<h2><a id="architecture-at-a-glance" href="#architecture-at-a-glance" class="Permalink" aria-hidden="true" title="Permalink">#</a>Architecture at a Glance</h2>
+<pre><code class="language-text"> CWinDVApp (WinDV.cpp)
+   COM init, process priority, registry key
+   '-&gt; CDVToolsDlg::DoModal()
+ --------------------------------------------------
+ CDVToolsDlg (DVToolsDlg.cpp)
+   MFC Dialog, Tab-UI, Resize-Engine, Registry I/O
+   CLI-Parser, Timer-based status update
+   '- owns: CDV m_video
+ --------------------------------------------------
+ CDV (DShow.h/cpp) -- Orchestrator &amp; CStatic
+   State Machine:
+     Idle &lt;-&gt; CapturePaused &lt;-&gt; Capturing
+     Idle &lt;-&gt; RecordPaused  &lt;-&gt; Recording
+                            --&gt; Finished
+   Owns: CDVInput/CAVIJoiner, CDVQueue,
+         CAVIWriter/CDVOutput, CMonitor
+   Threads: CapturingThread, RecordingThread
+ --------------------------------------------------
+ DirectShow Abstraction (DShow.h/cpp)
+   CFilterGraph
+     '-&gt; CInputGraph -&gt; CAVIReader, CDVInput
+     '-&gt; COutputGraph -&gt; CAVIWriter, CDVOutput,
+                         CMonitor
+   CDVQueue    (ring buffer)
+   CDVControl  (IAMExtTransport)
+   CAVIJoiner  (multi-file sequencing)
+ --------------------------------------------------
+ DV.cpp          SSYB subcode parser (BCD time)
+ DVError.cpp/h   DV error detection (STA field analysis, IEC 61834)
+ sha256.c/h      Pure C SHA-256 (FIPS 180-4), post-capture sidecar
+ DropFilesEdit   Drag-and-drop edit control
+ ToolTab         Owner-draw tab control
+ VideoDeviceSel  Device picker dialog
+ CaptureCfg      Capture config property page
+ RecordCfg       Record config property page
+</code></pre>
+<hr />
+<h2><a id="application-model" href="#application-model" class="Permalink" aria-hidden="true" title="Permalink">#</a>Application Model</h2>
+<p>WinDV uses the <strong>MFC dialog-based</strong> application pattern.
+There is no document/view; the entire UI is a single resizable dialog
+(<code>CDVToolsDlg</code>).
+The application class (<code>CWinDVApp</code>) does almost nothing beyond COM
+initialisation and registry key configuration before handing control to
+<code>CDVToolsDlg::DoModal()</code>.</p>
+<p>The dialog owns one instance of <code>CDV</code>, which is a <code>CStatic</code> subclass placed
+directly on the dialog template as a picture control.
+This dual role – MFC window and pipeline orchestrator – lets <code>CDV</code> host the
+preview window as a child of its own <code>HWND</code> without needing a separate
+container window.</p>
+<hr />
+<h2><a id="startup-sequence" href="#startup-sequence" class="Permalink" aria-hidden="true" title="Permalink">#</a>Startup Sequence</h2>
+<pre><code class="language-text">WinMain (MFC framework)
+  +-- CWinDVApp::InitInstance()
+        +-- SetPriorityClass(HIGH_PRIORITY_CLASS)
+        |     Raises the process priority to reduce frame drop risk.
+        |
+        +-- CoInitializeEx(NULL, COINIT_MULTITHREADED)
+        |     Initialises COM in multi-threaded apartment (MTA).
+        |     Required because DirectShow streaming threads call
+        |     back on arbitrary threads.
+        |
+        +-- SetRegistryKey(&quot;Petr Mourek&quot;)
+        |     All GetProfileInt/WriteProfileInt calls use
+        |     HKCU\Software\Petr Mourek\WinDV as their root.
+        |
+        +-- CDVToolsDlg::DoModal()
+        |     Runs the message pump until the dialog closes.
+        |
+        +-- CoUninitialize()
+</code></pre>
+<p><code>HIGH_PRIORITY_CLASS</code> is set on the whole process, not just individual
+threads.
+Worker threads then run at <code>THREAD_PRIORITY_NORMAL</code> relative to that base,
+while the monitoring thread runs at <code>THREAD_PRIORITY_BELOW_NORMAL</code>.
+See <a href="Threading_Model.html">Threading Model</a> for the full priority table.</p>
+<hr />
+<h2><a id="com-apartment-model" href="#com-apartment-model" class="Permalink" aria-hidden="true" title="Permalink">#</a>COM Apartment Model</h2>
+<p>COM is initialised with <code>COINIT_MULTITHREADED</code> (multi-threaded apartment,
+MTA).
+This means:</p>
+<ul>
+<li>Any thread may call any COM interface pointer without marshalling.</li>
+<li>DirectShow’s internal filter-graph streaming thread delivers samples
+directly to <code>CInputPin::Receive()</code> on its own thread.</li>
+<li>The application is responsible for its own thread safety
+(see <a href="Threading_Model.html">Threading Model</a>).</li>
+</ul>
+<p>If <code>CoInitializeEx</code> were called with <code>COINIT_APARTMENTTHREADED</code> instead,
+every cross-thread COM call would be marshalled through the main thread’s
+message pump, which would serialise frame delivery and cause dropped frames.</p>
+<hr />
+<h2><a id="class-hierarchy" href="#class-hierarchy" class="Permalink" aria-hidden="true" title="Permalink">#</a>Class Hierarchy</h2>
+<pre><code class="language-text">CFilterGraph
+  Owns: ICaptureGraphBuilder2 (m_GB)
+        IGraphBuilder         (m_FG)
+        IMediaControl         (m_MC)
+        IMediaSeeking         (m_MS)
+        IMediaEventEx         (m_ME)
+  |
+  +-- CInputGraph   (CFrameSource)
+  |     Inner class CInputFilter  (CBaseFilter, one CInputPin)
+  |     Inner class CInputPin     (CBaseInputPin)
+  |     |
+  |     +-- CAVIReader
+  |     |     Builds: FileSource -&gt; AVI Splitter -&gt; [DV Mux] -&gt; CInputFilter
+  |     |
+  |     +-- CDVInput              (also CDVControl)
+  |           Builds: DV capture filter -&gt; CInputFilter
+  |
+  +-- COutputGraph  (CFrameHandler)
+        Inner class COutputFilter (CBaseFilter, one COutputPin)
+        Inner class COutputPin    (CBaseOutputPin, optional COutputQueue)
+        |
+        +-- CAVIWriter
+        |     Builds: COutputFilter -&gt; [DV Splitter] -&gt; AVI Mux -&gt; File Sink
+        |
+        +-- CDVOutput             (also CDVControl)
+        |     Builds: COutputFilter -&gt; DV output filter
+        |
+        +-- CMonitor
+              Builds: COutputFilter -&gt; (auto) DV Decoder -&gt; Video Renderer
+
+CDVControl
+  Wraps IAMExtTransport (tape transport commands)
+  Mixed into: CDVInput, CDVOutput
+
+CDVQueue
+  Thread-safe ring buffer (producer/consumer, 100 slots by default)
+
+CAVIJoiner                        (CFrameSource, CFrameHandler)
+  Sequences multiple CAVIReader instances
+
+CDV                               (CStatic, CFrameHandler)
+  Top-level orchestrator.
+  Owns: CDVInput or CAVIJoiner (source)
+        CDVQueue                (buffer)
+        CAVIWriter or CDVOutput (sink)
+        CMonitor                (preview)
+
+CDVToolsDlg                       (CDialog)
+  Main UI dialog.
+  Owns: CDV m_video (the orchestrator / preview control)
+</code></pre>
+<p><code>CFrameHandler</code> and <code>CFrameSource</code> are pure abstract interfaces defined in
+<code>DShow.h</code>.
+They decouple the pipeline source (CDVInput or CAVIJoiner) from the
+orchestrator (CDV) and from each output sink (CAVIWriter, CDVOutput, CMonitor).</p>
+<hr />
+<h2><a id="cdv-state-machine" href="#cdv-state-machine" class="Permalink" aria-hidden="true" title="Permalink">#</a>CDV State Machine</h2>
+<p><code>CDV</code> exposes a two-phase build/start model.
+The <code>Build*</code> methods construct the pipeline and start the preview
+(<code>CapturePaused</code> / <code>RecordPaused</code>) before the user initiates the action.
+The <code>Start*</code> methods then begin writing or transmitting frames.</p>
+<pre><code class="language-text">Idle
+ |
+ +-- BuildCapturing(vsrc)    --&gt; CapturePaused
+ |     CDVInput + CMonitor + CDVQueue + CapturingThread created.
+ |     Preview is live; no file is being written.
+ |
+ |     StartCapturing(...)   --&gt; Capturing
+ |     |   CAVIWriter created on first frame in CapturingThread.
+ |     |   Automatic file splits happen inside CapturingThread.
+ |     |
+ |     |   StopCapturing()   --&gt; CapturePaused
+ |     |   (current AVI closed cleanly by CapturingThread)
+ |     |
+ |     +-- (captureTime reached)  --&gt; Finished
+ |
+ +-- BuildRecording(files, vdst) --&gt; RecordPaused
+       CAVIJoiner + CMonitor + CDVOutput + CDVQueue + RecordingThread created.
+       Frames are queuing; DV device is in record-pause if DVctrl is set.
+
+       StartRecording()       --&gt; Recording
+       |   RecordingThread begins forwarding frames to CDVOutput.
+       |
+       |   StopRecording()    --&gt; RecordPaused
+       |
+       +-- (source exhausted) --&gt; Finished
+
+Finished
+  Destroy()  --&gt; Idle
+  (All pipeline objects torn down; counters reset.)
+</code></pre>
+<p><code>Destroy()</code> is safe to call in any state.
+Its shutdown sequence is described in <a href="Threading_Model.html#shutdown-sequence">Threading Model</a>.</p>
+<hr />
+<h2><a id="how-the-pieces-fit-together" href="#how-the-pieces-fit-together" class="Permalink" aria-hidden="true" title="Permalink">#</a>How the Pieces Fit Together</h2>
+<h3><a id="capture-mode" href="#capture-mode" class="Permalink" aria-hidden="true" title="Permalink">#</a>Capture Mode</h3>
+<pre><code class="language-text">[FireWire device]
+      | (DV frames, ~25-30 Hz)
+      v
+CDVInput::CInputPin::Receive()    &lt;- DirectShow streaming thread
+      | HandleFrame(duration, data, len)
+      v
+CDV::HandleFrame()
+      | CDVQueue::Put()
+      v
+CDVQueue  (ring buffer, 100 slots)
+      |
+      +--CDVQueue::Get()  &lt;- CapturingThread
+      |     |
+      |     +-- (queue &lt; 50%) --&gt; CMonitor::HandleFrame()  (preview)
+      |     +-- (Capturing)   --&gt; CAVIWriter::HandleFrame() (disk)
+      |     +-- (WM_DV_TIMECHANGE posted to CDVToolsDlg)
+      v
+   [CAVIWriter -&gt; AVI file(s)]
+   [CMonitor   -&gt; DV decoder -&gt; Video Renderer -&gt; IDC_VIDEO]
+</code></pre>
+<h3><a id="record-mode" href="#record-mode" class="Permalink" aria-hidden="true" title="Permalink">#</a>Record Mode</h3>
+<pre><code class="language-text">[AVI files on disk]
+      | (CAVIReader, one file at a time)
+      v
+CAVIJoiner::HandleFrame()         &lt;- DirectShow streaming thread
+      | CDVQueue::Put()
+      v
+CDVQueue  (ring buffer, 100 slots)
+      |
+      +--CDVQueue::Get()  &lt;- RecordingThread
+      |     |
+      |     +-- (queue &gt; 50% or EOS) --&gt; CMonitor::HandleFrame()  (preview)
+      |     +-- (Recording)          --&gt; CDVOutput::HandleFrame() (FireWire)
+      v
+   [CDVOutput -&gt; DV device over FireWire]
+   [CMonitor  -&gt; DV decoder -&gt; Video Renderer -&gt; IDC_VIDEO]
+</code></pre>
+<p>The preview throttling directions are <strong>deliberately opposite</strong> in the two
+modes.
+During capture, preview is sent when the queue is below half capacity –
+meaning the disk is keeping up and there is spare CPU.
+During recording, preview is sent when the queue is above half capacity –
+meaning the file is being read ahead and frames are flowing freely.
+This asymmetry ensures that preview never starves the primary data path.
+See <a href="Threading_Model.html#preview-throttling-strategy">Threading Model</a> for details.</p>
+    </div>
+
+        <nav>
+        <ul class="Pager">
+            <li class=Pager--prev><a href="../Getting_Started/Prerequisites.html">Previous</a></li>            <li class=Pager--next><a href="../Architecture/DirectShow_Pipeline.html">Next</a></li>        </ul>
+    </nav>
+    </article>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    <!-- JS -->
+            <script src="../themes/daux/js/main.js"></script>
+    
+        <script>
+        
+        window.searchLanguage = "";
+        window.searchTranslation = {"Search_one_result":"1 result","Search_results":"!count results","Search_no_results":"Nothing found","Search_common_words_ignored":"Common words are largely ignored","Search_too_short":"Search too short","Search_one_character_or_more":"Should be one character or more","Search_should_be_x_or_more":"Should be !min characters or more","Link_previous":"Previous","Link_next":"Next"};
+    </script>
+
+    <!-- Search -->
+    <script type="text/javascript" src="../daux_libraries/search.min.js"></script>
+
+    <script>
+        window.search({'base_url': '../'})
+    </script>
+</body>
+</html>
